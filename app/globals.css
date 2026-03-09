@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Leaflet ── */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+.leaflet-control-attribution {
+  font-size: 9px !important;
+}
+
+/* ── Design Tokens ── */
+:root {
+  --bottom-sheet-peek: 220px;
+  --bottom-nav-height: 64px;
+  --header-height: 56px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ── Base ── */
+html, body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #F8FAFC;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+/* ── Bottom Sheet ── */
+.bottom-sheet {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -4px 32px rgba(0,0,0,0.10);
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform;
+  z-index: 40;
+}
+.bottom-sheet-handle {
+  width: 36px; height: 4px;
+  background: #E2E8F0;
+  border-radius: 2px;
+  margin: 12px auto 0;
+}
+
+/* ── Floating overlay ── */
+.map-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+.map-overlay > * {
+  pointer-events: auto;
+}
+
+/* ── Badge pill ── */
+.badge-green {
+  background: #DCFCE7;
+  color: #15803D;
+}
+.badge-red {
+  background: #FEE2E2;
+  color: #B91C1C;
+}
+.badge-blue {
+  background: #DBEAFE;
+  color: #1D4ED8;
+}
+
+/* ── Scrollbar hide ── */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Tap animation ── */
+.tap-scale:active { transform: scale(0.97); }
