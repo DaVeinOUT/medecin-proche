@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 export const revalidate = 86400; // Revalide toutes les 24h (ISR)
 
@@ -15,14 +15,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // Récupère tous les IDs médecins sans limite (colonne légère)
-  // Graceful fallback si les env vars Supabase ne sont pas disponibles au build
+  // Récupère tous les IDs médecins — client créé localement pour éviter
+  // le crash au niveau module si les env vars sont absentes au build
   let data: { id: string }[] | null = null;
-  try {
-    const result = await supabase.from('medecins_vue').select('id').limit(10000);
-    data = result.data;
-  } catch {
-    // Build sans Supabase — sitemap statique uniquement
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (supabaseUrl && supabaseKey) {
+    try {
+      const client = createClient(supabaseUrl, supabaseKey);
+      const result = await client.from('medecins_vue').select('id').limit(10000);
+      data = result.data;
+    } catch {
+      // Supabase indisponible — sitemap statique uniquement
+    }
   }
 
   const medecinPages: MetadataRoute.Sitemap = (data ?? []).map((m) => ({
