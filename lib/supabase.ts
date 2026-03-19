@@ -75,7 +75,7 @@ export async function getMedecinsByTerritoire(
   let query = supabase
     .from('medecins_vue')
     .select(LIST_COLUMNS)
-    .eq('territoire', territoire);
+    .ilike('territoire', `%${territoire}%`);  // ilike au lieu de eq — gère "Réunion" ↔ "La Réunion"
 
   if (specialite)              query = query.ilike('specialite', `%${specialite}%`);
   if (secteur)                 query = query.eq('secteur', secteur);

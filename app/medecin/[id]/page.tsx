@@ -80,7 +80,7 @@ export default async function MedecinPage({ params }: Props) {
             </div>
 
             <h1 className="text-2xl font-extrabold text-white leading-tight">
-              Dr {medecin.prenom} {displayNom}
+              Dr {medecin.prenom ? toTitleCase(medecin.prenom) : ''} {displayNom}
             </h1>
             <p className="text-white/80 text-sm font-medium mt-1">{medecin.specialite}</p>
 
@@ -118,8 +118,8 @@ export default async function MedecinPage({ params }: Props) {
               </div>
               <div>
                 <p className="text-xs text-gray-400 font-medium">Adresse</p>
-                <p className="text-sm text-gray-800 font-semibold">{medecin.adresse}</p>
-                <p className="text-sm text-gray-500">{medecin.ville}</p>
+                <p className="text-sm text-gray-800 font-semibold">{toTitleCase(medecin.adresse)}</p>
+                <p className="text-sm text-gray-500">{toTitleCase(medecin.ville)}</p>
               </div>
             </div>
 
@@ -191,7 +191,7 @@ export default async function MedecinPage({ params }: Props) {
         {medecin.telephone ? (
           <a
             href={`tel:${medecin.telephone}`}
-            className={`flex items-center justify-center gap-2.5 w-full bg-gradient-to-r ${gradient} text-white py-3.5 rounded-2xl font-bold text-base shadow-float tap-scale`}
+            className={`btn-appeler flex items-center justify-center gap-2.5 w-full bg-gradient-to-r ${gradient} text-white py-3.5 rounded-2xl font-bold text-base tap-scale`}
           >
             <Phone size={19} />
             Appeler — {medecin.telephone}

@@ -140,7 +140,12 @@ export default function Map({ userPosition, mapCenter, medecins, selectedMedecin
             <p style="color:${BRAND_TEAL};margin:0;font-size:11px">${specialite}${dist}</p>
             ${dispo}${tel}${fiche}
           </div>
-        `, { maxWidth: 220 });
+        `, {
+          maxWidth: 220,
+          // Décale l'autopan pour que le popup s'ouvre sous l'overlay (header + pills ≈ 210px)
+          autoPanPaddingTopLeft: L.point(10, 220),
+          autoPanPaddingBottomRight: L.point(10, 80),
+        });
 
       marker.on('click', () => { if (onSelectMedecin) onSelectMedecin(m); });
 

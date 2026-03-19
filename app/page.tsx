@@ -302,6 +302,7 @@ export default function HomePage() {
       {/* BOTTOM NAV */}
       <BottomNav
         activePage="map"
+        listActive={sheetState === 'full'}
         onMapClick={() => setSheetState('peek')}
         onListClick={() => setSheetState(sheetState === 'full' ? 'peek' : 'full')}
       />

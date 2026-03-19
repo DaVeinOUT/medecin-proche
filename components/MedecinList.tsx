@@ -18,6 +18,9 @@ interface MedecinListProps {
   selectedMedecinId?: string | null;
 }
 
+// Territoires avec couverture partielle (message adapté)
+const COUVERTURE_LIMITEE = ['Réunion', 'Mayotte'];
+
 function SkeletonCard() {
   return (
     <div className="flex items-center gap-3 px-4 py-3.5 border-b border-gray-50 animate-pulse">
@@ -39,7 +42,7 @@ function sortMedecins(list: Medecin[], by: SortBy): Medecin[] {
 }
 
 export default function MedecinList({
-  medecins, loading, mode = 'proximity', onSelectMedecin, selectedMedecinId,
+  medecins, loading, mode = 'proximity', territoire, onSelectMedecin, selectedMedecinId,
 }: MedecinListProps) {
   const [visible, setVisible] = useState(PAGE_SIZE);
   const [sortBy, setSortBy]   = useState<SortBy>('distance');
@@ -73,16 +76,19 @@ export default function MedecinList({
   }
 
   if (medecins.length === 0) {
+    const couvertureLimitee = territoire && COUVERTURE_LIMITEE.some(t => territoire.includes(t));
     return (
       <div className="flex flex-col items-center justify-center py-10 px-6 text-center">
-        <div className="w-16 h-16 bg-gray-100 rounded-3xl flex items-center justify-center mb-4">
-          <span className="text-3xl">🏥</span>
+        <div className="w-16 h-16 bg-primary-50 rounded-3xl flex items-center justify-center mb-4">
+          <span className="text-3xl">{couvertureLimitee ? '🌏' : '🏥'}</span>
         </div>
         <p className="font-semibold text-gray-800">Aucun médecin trouvé</p>
-        <p className="text-gray-400 text-sm mt-1">
-          {mode === 'proximity'
-            ? 'Sélectionnez un territoire ou élargissez le rayon'
-            : 'Essayez une autre recherche'}
+        <p className="text-gray-400 text-sm mt-1 max-w-xs leading-relaxed">
+          {couvertureLimitee
+            ? `Nous travaillons à améliorer la couverture de ${territoire}. Essayez une recherche par nom ou spécialité.`
+            : mode === 'proximity'
+              ? 'Sélectionnez un territoire ou élargissez le rayon'
+              : 'Essayez une autre recherche'}
         </p>
       </div>
     );

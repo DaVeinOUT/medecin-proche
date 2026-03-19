@@ -106,6 +106,21 @@ html, body {
 /* ── Tap animation ── */
 .tap-scale:active { transform: scale(0.97); }
 
+/* ── Leaflet popup — au-dessus de l'overlay UI ── */
+.leaflet-popup-pane { z-index: 800 !important; }
+.leaflet-popup-content-wrapper {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
+}
+.leaflet-popup-tip { display: none; }
+
+/* ── Bouton Appeler — légère pulsation pour attirer l'œil ── */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 4px 20px rgba(13,148,136,0.3); }
+  50%       { box-shadow: 0 4px 28px rgba(13,148,136,0.55); }
+}
+.btn-appeler { animation: pulse-glow 2.4s ease-in-out infinite; }
+
 /* ── Carte médecin avec ombre ── */
 .medecin-card {
   background: white;

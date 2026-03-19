@@ -1,6 +1,5 @@
 // Utilitaires avatar partagés entre MedecinCard et la page fiche médecin
 
-// Couleurs par spécialité — identification visuelle rapide
 const SPECIALITE_COLORS: Record<string, { bg: string; gradient: string }> = {
   'Médecine générale':         { bg: 'bg-emerald-100 text-emerald-800', gradient: 'from-emerald-400 to-emerald-600' },
   'Cardiologie':               { bg: 'bg-red-100 text-red-800',         gradient: 'from-red-400 to-red-600' },
@@ -19,7 +18,7 @@ const SPECIALITE_COLORS: Record<string, { bg: string; gradient: string }> = {
   'Anesthésie-Réanimation':    { bg: 'bg-rose-100 text-rose-800',       gradient: 'from-rose-400 to-rose-600' },
 };
 
-// Fallback par lettre du nom (pour les spécialités non listées)
+// Fallback par lettre du nom (spécialités non listées ou données inconnues)
 const FALLBACK_BG = [
   'bg-blue-100 text-blue-800',
   'bg-violet-100 text-violet-800',
@@ -41,15 +40,30 @@ function fallbackIdx(name: string): number {
   return name.charCodeAt(0) % FALLBACK_BG.length;
 }
 
-/** Couleur de fond de l'avatar — basée sur la spécialité si connue, sinon sur le nom */
+/** Trouve la correspondance de spécialité sans tenir compte de la casse ni des accents */
+function findSpecialite(specialite: string): { bg: string; gradient: string } | undefined {
+  const needle = specialite.trim().toLowerCase();
+  const key = Object.keys(SPECIALITE_COLORS).find(
+    (k) => k.toLowerCase() === needle
+  );
+  return key ? SPECIALITE_COLORS[key] : undefined;
+}
+
+/** Couleur de fond de l'avatar — par spécialité (case-insensitive), fallback sur le nom */
 export function avatarBg(nom: string, specialite?: string): string {
-  if (specialite && SPECIALITE_COLORS[specialite]) return SPECIALITE_COLORS[specialite].bg;
+  if (specialite) {
+    const found = findSpecialite(specialite);
+    if (found) return found.bg;
+  }
   return FALLBACK_BG[fallbackIdx(nom)];
 }
 
-/** Gradient pour la page fiche — basé sur la spécialité si connue */
+/** Gradient pour la page fiche — par spécialité, fallback sur le nom */
 export function avatarGradient(nom: string, specialite?: string): string {
-  if (specialite && SPECIALITE_COLORS[specialite]) return SPECIALITE_COLORS[specialite].gradient;
+  if (specialite) {
+    const found = findSpecialite(specialite);
+    if (found) return found.gradient;
+  }
   return FALLBACK_GRADIENT[fallbackIdx(nom)];
 }
 

@@ -37,7 +37,7 @@ export default function MedecinCard({ medecin, onSelect, selected }: MedecinCard
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
           <p className="font-bold text-gray-900 text-[15px] leading-tight truncate">
-            Dr {medecin.prenom} {displayNom}
+            Dr {medecin.prenom ? toTitleCase(medecin.prenom) : ''} {displayNom}
           </p>
           {distanceLabel && (
             <span className="text-[11px] font-semibold text-gray-400 shrink-0 bg-gray-100 px-1.5 py-0.5 rounded-full">

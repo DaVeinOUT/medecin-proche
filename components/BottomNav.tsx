@@ -5,13 +5,15 @@ import { MapPin, List } from 'lucide-react';
 
 interface BottomNavProps {
   activePage?: 'map' | 'favoris';
+  listActive?: boolean;   // true quand le bottom sheet est en état 'full'
   onMapClick?: () => void;
   onListClick?: () => void;
 }
 
-export default function BottomNav({ activePage = 'map', onMapClick, onListClick }: BottomNavProps) {
+export default function BottomNav({ activePage = 'map', listActive = false, onMapClick, onListClick }: BottomNavProps) {
   const isMap     = activePage === 'map';
   const isFavoris = activePage === 'favoris';
+  const mapActive = isMap && !listActive;
 
   return (
     <nav
@@ -25,11 +27,15 @@ export default function BottomNav({ activePage = 'map', onMapClick, onListClick 
         {isMap ? (
           <button
             onClick={onMapClick}
-            className="flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-2xl bg-primary-50 tap-scale"
             aria-label="Voir la carte"
+            className={`flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-2xl tap-scale transition-colors ${
+              mapActive ? 'bg-primary-50' : ''
+            }`}
           >
-            <MapPin size={22} className="text-primary-600" />
-            <span className="text-[11px] font-bold text-primary-600">Carte</span>
+            <MapPin size={22} className={mapActive ? 'text-primary-600' : 'text-gray-300'} />
+            <span className={`text-[11px] ${mapActive ? 'font-bold text-primary-600' : 'font-medium text-gray-300'}`}>
+              Carte
+            </span>
           </button>
         ) : (
           <Link href="/" className="flex flex-col items-center gap-0.5 px-5 py-1.5 tap-scale" aria-label="Voir la carte">
@@ -42,11 +48,15 @@ export default function BottomNav({ activePage = 'map', onMapClick, onListClick 
         {isMap ? (
           <button
             onClick={onListClick}
-            className="flex flex-col items-center gap-0.5 px-5 py-1.5 tap-scale"
             aria-label="Voir la liste des médecins"
+            className={`flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-2xl tap-scale transition-colors ${
+              listActive ? 'bg-primary-50' : ''
+            }`}
           >
-            <List size={22} className="text-gray-400" />
-            <span className="text-[11px] font-medium text-gray-400">Liste</span>
+            <List size={22} className={listActive ? 'text-primary-600' : 'text-gray-400'} />
+            <span className={`text-[11px] ${listActive ? 'font-bold text-primary-600' : 'font-medium text-gray-400'}`}>
+              Liste
+            </span>
           </button>
         ) : (
           <Link href="/" className="flex flex-col items-center gap-0.5 px-5 py-1.5 tap-scale" aria-label="Voir la liste">
@@ -58,8 +68,8 @@ export default function BottomNav({ activePage = 'map', onMapClick, onListClick 
         {/* Favoris */}
         <Link
           href="/favoris"
-          className={`flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-2xl tap-scale ${isFavoris ? 'bg-primary-50' : ''}`}
           aria-label="Mes médecins favoris"
+          className={`flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-2xl tap-scale ${isFavoris ? 'bg-primary-50' : ''}`}
         >
           <span className="text-[22px]" aria-hidden="true">❤️</span>
           <span className={`text-[11px] ${isFavoris ? 'font-bold text-primary-600' : 'font-medium text-gray-400'}`}>
