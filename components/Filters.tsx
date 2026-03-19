@@ -18,6 +18,7 @@ export default function Filters({ filters, onChange }: FiltersProps) {
           value={filters.specialite}
           onChange={(e) => onChange({ ...filters, specialite: e.target.value })}
           className={selectClass}
+          aria-label="Filtrer par spécialité"
         >
           <option value="">Toutes spécialités</option>
           {SPECIALITES.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -27,11 +28,13 @@ export default function Filters({ filters, onChange }: FiltersProps) {
           value={filters.distance}
           onChange={(e) => onChange({ ...filters, distance: Number(e.target.value) })}
           className={selectClass}
+          aria-label="Rayon de recherche"
         >
           <option value={5}>5 km</option>
           <option value={10}>10 km</option>
           <option value={20}>20 km</option>
           <option value={50}>50 km</option>
+          <option value={100}>100 km</option>
         </select>
       </div>
 
@@ -40,6 +43,7 @@ export default function Filters({ filters, onChange }: FiltersProps) {
           value={filters.secteur ?? ''}
           onChange={(e) => onChange({ ...filters, secteur: e.target.value ? Number(e.target.value) as 1 | 2 | 3 : null })}
           className={selectClass}
+          aria-label="Filtrer par secteur"
         >
           <option value="">Tous secteurs</option>
           <option value="1">Secteur 1</option>
@@ -47,15 +51,19 @@ export default function Filters({ filters, onChange }: FiltersProps) {
           <option value="3">Secteur 3</option>
         </select>
 
-        <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer whitespace-nowrap">
-          <input
-            type="checkbox"
-            checked={filters.accepteNouveauxPatients}
-            onChange={(e) => onChange({ ...filters, accepteNouveauxPatients: e.target.checked })}
-            className="w-4 h-4 accent-primary-600 rounded"
-          />
+        <button
+          type="button"
+          onClick={() => onChange({ ...filters, accepteNouveauxPatients: !filters.accepteNouveauxPatients })}
+          aria-pressed={filters.accepteNouveauxPatients}
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold border transition-colors whitespace-nowrap ${
+            filters.accepteNouveauxPatients
+              ? 'bg-emerald-600 text-white border-emerald-600'
+              : 'bg-gray-50 text-gray-600 border-gray-200'
+          }`}
+        >
+          <span className={`w-2 h-2 rounded-full ${filters.accepteNouveauxPatients ? 'bg-white' : 'bg-gray-300'}`} />
           Disponible
-        </label>
+        </button>
       </div>
     </div>
   );

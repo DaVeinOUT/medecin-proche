@@ -61,16 +61,16 @@ html, body {
 
 /* ── Badge pill ── */
 .badge-green {
-  background: #DCFCE7;
-  color: #15803D;
+  background: #BBF7D0;
+  color: #166534;
 }
 .badge-red {
-  background: #FEE2E2;
-  color: #B91C1C;
+  background: #FECACA;
+  color: #991B1B;
 }
 .badge-blue {
-  background: #DBEAFE;
-  color: #1D4ED8;
+  background: #BFDBFE;
+  color: #1E40AF;
 }
 
 /* ── Scrollbar hide ── */

@@ -3,12 +3,13 @@
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet.markercluster';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { Medecin } from '@/types/medecin';
 
-// Max marqueurs affichés sur la carte (au-delà Leaflet rame)
-const MAX_MAP_MARKERS = 120;
+const MAX_MAP_MARKERS = 300;
 
-// Échappe les entités HTML pour éviter le XSS dans les popups Leaflet
 function escapeHtml(s: string | null | undefined): string {
   if (!s) return '';
   return s
@@ -19,7 +20,6 @@ function escapeHtml(s: string | null | undefined): string {
     .replace(/'/g, '&#x27;');
 }
 
-// Icône position utilisateur (div CSS, pas d'image réseau)
 const userIcon = L.divIcon({
   className: '',
   html: `<div style="width:16px;height:16px;background:#2563eb;border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(37,99,235,0.5)"></div>`,
@@ -27,7 +27,6 @@ const userIcon = L.divIcon({
   iconAnchor: [8, 8],
 });
 
-// Icône médecin (div CSS — évite les requêtes CDN et les 404 webpack)
 const medecinIcon = L.divIcon({
   className: '',
   html: `<div style="width:28px;height:28px;background:#1A6FE8;border:2.5px solid white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 8px rgba(0,0,0,0.3)"><div style="transform:rotate(45deg);width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:12px">+</div></div>`,
@@ -40,13 +39,17 @@ interface MapProps {
   userPosition: [number, number];
   mapCenter: [number, number];
   medecins: Medecin[];
+  selectedMedecin?: Medecin | null;
+  onSelectMedecin?: (m: Medecin) => void;
 }
 
-export default function Map({ userPosition, mapCenter, medecins }: MapProps) {
-  const containerRef   = useRef<HTMLDivElement>(null);
-  const mapRef         = useRef<L.Map | null>(null);
-  const markersRef     = useRef<L.LayerGroup | null>(null);
-  const userMarkerRef  = useRef<L.Marker | null>(null);
+export default function Map({ userPosition, mapCenter, medecins, selectedMedecin, onSelectMedecin }: MapProps) {
+  const containerRef  = useRef<HTMLDivElement>(null);
+  const mapRef        = useRef<L.Map | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const clusterRef    = useRef<any>(null);
+  const markerMapRef  = useRef<Record<string, L.Marker>>({});
+  const userMarkerRef = useRef<L.Marker | null>(null);
 
   // ── Initialisation carte (une seule fois) ──────────────────────────────────
   useEffect(() => {
@@ -56,7 +59,7 @@ export default function Map({ userPosition, mapCenter, medecins }: MapProps) {
       center: mapCenter,
       zoom: 12,
       zoomControl: false,
-      preferCanvas: true,  // ← canvas renderer = bien plus rapide que SVG pour beaucoup de marqueurs
+      preferCanvas: true,
     });
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -68,8 +71,19 @@ export default function Map({ userPosition, mapCenter, medecins }: MapProps) {
       keepBuffer: 2,
     }).addTo(map);
 
+    // Groupe de clustering
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cluster = (L as any).markerClusterGroup({
+      chunkedLoading: true,
+      maxClusterRadius: 50,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      disableClusteringAtZoom: 16,
+    });
+    map.addLayer(cluster);
+    clusterRef.current = cluster;
+
     mapRef.current = map;
-    markersRef.current = L.layerGroup().addTo(map);
 
     userMarkerRef.current = L.marker(userPosition, { icon: userIcon })
       .bindPopup('<strong>Vous êtes ici</strong>')
@@ -95,41 +109,59 @@ export default function Map({ userPosition, mapCenter, medecins }: MapProps) {
 
   // ── Rafraîchir les marqueurs médecins ────────────────────────────────────
   useEffect(() => {
-    if (!markersRef.current) return;
+    if (!clusterRef.current) return;
 
-    markersRef.current.clearLayers();
+    clusterRef.current.clearLayers();
+    markerMapRef.current = {};
 
     const toShow = medecins.slice(0, MAX_MAP_MARKERS);
 
     toShow.forEach((m) => {
       if (!m.lat || !m.lng) return;
 
-      const prenom    = escapeHtml(m.prenom);
-      const nom       = escapeHtml(m.nom);
+      const prenom     = escapeHtml(m.prenom);
+      const nom        = escapeHtml(m.nom);
       const specialite = escapeHtml(m.specialite);
-      const safeId    = encodeURIComponent(m.id);
+      const safeId     = encodeURIComponent(m.id);
 
       const disponible = m.accepte_nouveaux_patients
-        ? `<span style="color:#00C853;font-size:10px">● Disponible</span>`
-        : `<span style="color:#ef4444;font-size:10px">● Complet</span>`;
-      const tel  = m.telephone
+        ? `<span style="color:#166534;font-size:10px">● Disponible</span>`
+        : `<span style="color:#991B1B;font-size:10px">● Complet</span>`;
+      const tel = m.telephone
         ? `<a href="tel:${escapeHtml(m.telephone)}" style="color:#1A6FE8;display:block;margin-top:3px;font-size:11px">${escapeHtml(m.telephone)}</a>`
         : '';
       const fiche = `<a href="/medecin/${safeId}" style="color:#1A6FE8;font-weight:700;display:block;margin-top:4px;font-size:11px">Voir la fiche →</a>`;
-      const dist  = m.distance ? `<span style="color:#9ca3af;font-size:10px"> · ${(m.distance / 1000).toFixed(1)} km</span>` : '';
+      const dist  = m.distance
+        ? `<span style="color:#9ca3af;font-size:10px"> · ${(m.distance / 1000).toFixed(1)} km</span>`
+        : '';
 
-      L.marker([m.lat, m.lng], { icon: medecinIcon })
+      const marker = L.marker([m.lat, m.lng], { icon: medecinIcon })
         .bindPopup(`
           <div style="font-size:12px;min-width:160px;line-height:1.4">
             <p style="font-weight:700;margin:0 0 2px">Dr ${prenom} ${nom}</p>
             <p style="color:#1A6FE8;margin:0;font-size:11px">${specialite}${dist}</p>
-            ${disponible}
-            ${tel}${fiche}
+            ${disponible}${tel}${fiche}
           </div>
-        `, { maxWidth: 220 })
-        .addTo(markersRef.current!);
+        `, { maxWidth: 220 });
+
+      // Synchronisation carte → liste
+      marker.on('click', () => {
+        if (onSelectMedecin) onSelectMedecin(m);
+      });
+
+      clusterRef.current.addLayer(marker);
+      markerMapRef.current[m.id] = marker;
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [medecins]);
+
+  // ── Centrer sur le médecin sélectionné depuis la liste ───────────────────
+  useEffect(() => {
+    if (!selectedMedecin || !mapRef.current) return;
+    mapRef.current.flyTo([selectedMedecin.lat, selectedMedecin.lng], 14, { animate: true, duration: 0.5 });
+    const marker = markerMapRef.current[selectedMedecin.id];
+    if (marker) setTimeout(() => marker.openPopup(), 600);
+  }, [selectedMedecin]);
 
   return <div ref={containerRef} className="w-full h-full" />;
 }

@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Médecin Proche — DOM-TOM',
-  description: 'Trouvez un professionnel de santé près de chez vous en Guyane et aux Antilles',
+  description: 'Trouvez un professionnel de santé près de chez vous en Martinique, Guadeloupe, Guyane, La Réunion et Mayotte',
   manifest: '/manifest.json',
 };
 

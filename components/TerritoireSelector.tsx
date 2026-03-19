@@ -24,13 +24,15 @@ export default function TerritoireSelector({ onSelect, territoire }: TerritoireS
           <button
             key={t.key}
             onClick={() => onSelect(t.position, t.label)}
+            aria-label={`Voir les médecins en ${t.label}`}
+            aria-pressed={active}
             className={`flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-semibold whitespace-nowrap shadow-float transition-all tap-scale ${
               active
                 ? 'bg-primary-600 text-white'
                 : 'bg-white text-gray-600 hover:bg-primary-50 hover:text-primary-600'
             }`}
           >
-            <span>{t.emoji}</span>
+            <span aria-hidden="true">{t.emoji}</span>
             {t.label}
           </button>
         );

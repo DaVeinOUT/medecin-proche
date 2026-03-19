@@ -1,0 +1,73 @@
+'use client';
+
+import Link from 'next/link';
+import { MapPin, List } from 'lucide-react';
+
+interface BottomNavProps {
+  activePage?: 'map' | 'favoris';
+  onMapClick?: () => void;
+  onListClick?: () => void;
+}
+
+export default function BottomNav({ activePage = 'map', onMapClick, onListClick }: BottomNavProps) {
+  const isMap = activePage === 'map';
+  const isFavoris = activePage === 'favoris';
+
+  return (
+    <nav
+      className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-t border-gray-100"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)' }}
+      aria-label="Navigation principale"
+    >
+      <div className="flex items-center justify-around px-6 pt-2 pb-2">
+
+        {/* Carte */}
+        {isMap ? (
+          <button
+            onClick={onMapClick}
+            className="flex flex-col items-center gap-0.5 tap-scale"
+            aria-label="Voir la carte"
+          >
+            <MapPin size={22} className="text-primary-600" />
+            <span className="text-[11px] font-semibold text-primary-600">Carte</span>
+          </button>
+        ) : (
+          <Link href="/" className="flex flex-col items-center gap-0.5 tap-scale" aria-label="Voir la carte">
+            <MapPin size={22} className="text-gray-400" />
+            <span className="text-[11px] font-medium text-gray-400">Carte</span>
+          </Link>
+        )}
+
+        {/* Liste */}
+        {isMap ? (
+          <button
+            onClick={onListClick}
+            className="flex flex-col items-center gap-0.5 tap-scale"
+            aria-label="Voir la liste des médecins"
+          >
+            <List size={22} className="text-gray-400" />
+            <span className="text-[11px] font-medium text-gray-400">Liste</span>
+          </button>
+        ) : (
+          <Link href="/" className="flex flex-col items-center gap-0.5 tap-scale" aria-label="Voir la liste">
+            <List size={22} className="text-gray-400" />
+            <span className="text-[11px] font-medium text-gray-400">Liste</span>
+          </Link>
+        )}
+
+        {/* Favoris */}
+        <Link
+          href="/favoris"
+          className="flex flex-col items-center gap-0.5 tap-scale"
+          aria-label="Mes médecins favoris"
+        >
+          <span className="text-[22px]" aria-hidden="true">❤️</span>
+          <span className={`text-[11px] ${isFavoris ? 'font-semibold text-primary-600' : 'font-medium text-gray-400'}`}>
+            Favoris
+          </span>
+        </Link>
+
+      </div>
+    </nav>
+  );
+}

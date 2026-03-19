@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { getMedecinById } from '@/lib/supabase';
 import { avatarGradient, getInitiales } from '@/lib/avatar';
-import { Phone, MapPin, Clock, Globe, Users, ChevronLeft, CheckCircle, XCircle } from 'lucide-react';
+import { toTitleCase } from '@/lib/utils';
+import { Phone, PhoneOff, MapPin, Clock, Globe, Users, ChevronLeft, CheckCircle, XCircle, CalendarX } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import FavoriButton from '@/components/FavoriButton';
@@ -16,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const medecin = await getMedecinById(id);
   if (!medecin) return { title: 'Médecin introuvable | Médecin Proche' };
 
-  const nomComplet = `Dr ${medecin.prenom ?? ''} ${medecin.nom}`.trim();
+  const nomComplet = `Dr ${medecin.prenom ?? ''} ${toTitleCase(medecin.nom)}`.trim();
   const title = `${nomComplet} — ${medecin.specialite} à ${medecin.ville} | Médecin Proche`;
   const description = `Consultez la fiche de ${nomComplet}, ${medecin.specialite} à ${medecin.ville} (${medecin.territoire}). Secteur ${medecin.secteur}.${medecin.accepte_nouveaux_patients ? ' Accepte de nouveaux patients.' : ' Complet actuellement.'}`;
 
@@ -38,8 +39,9 @@ export default async function MedecinPage({ params }: Props) {
 
   if (!medecin) notFound();
 
-  const initiales = getInitiales(medecin.prenom, medecin.nom);
-  const gradient = avatarGradient(medecin.nom);
+  const initiales  = getInitiales(medecin.prenom, medecin.nom);
+  const gradient   = avatarGradient(medecin.nom, medecin.specialite);
+  const displayNom = toTitleCase(medecin.nom);
 
   return (
     <div className="min-h-screen bg-surface">
@@ -57,7 +59,7 @@ export default async function MedecinPage({ params }: Props) {
             </Link>
             <div className="flex items-center gap-2">
               <ShareButton
-                title={`Dr ${medecin.prenom ?? ''} ${medecin.nom} — ${medecin.specialite}`}
+                title={`Dr ${medecin.prenom ?? ''} ${displayNom} — ${medecin.specialite}`}
                 text={`${medecin.specialite} à ${medecin.ville} (${medecin.territoire})`}
                 url={`${BASE_URL}/medecin/${medecin.id}`}
               />
@@ -66,7 +68,7 @@ export default async function MedecinPage({ params }: Props) {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Avatar */}
+            {/* Avatar coloré par spécialité */}
             <div className={`w-20 h-20 rounded-3xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-float shrink-0`}>
               <span className="text-white text-2xl font-bold">{initiales}</span>
             </div>
@@ -74,7 +76,7 @@ export default async function MedecinPage({ params }: Props) {
             {/* Identité */}
             <div className="flex-1 min-w-0">
               <h1 className="text-xl font-bold text-gray-900 leading-tight">
-                Dr {medecin.prenom} {medecin.nom}
+                Dr {medecin.prenom} {displayNom}
               </h1>
               <span className="inline-block bg-primary-100 text-primary-700 text-xs font-semibold px-3 py-1 rounded-full mt-1.5">
                 {medecin.specialite}
@@ -142,33 +144,48 @@ export default async function MedecinPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Horaires */}
-        {medecin.horaires && (
-          <div className="bg-white rounded-2xl shadow-card overflow-hidden">
-            <p className="px-5 pt-4 pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400">
-              Horaires
-            </p>
-            <div className="flex items-start gap-4 px-5 pb-4">
-              <div className="w-8 h-8 bg-primary-50 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
-                <Clock size={15} className="text-primary-600" />
-              </div>
+        {/* Horaires — toujours visible */}
+        <div className="bg-white rounded-2xl shadow-card overflow-hidden">
+          <p className="px-5 pt-4 pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400">
+            Horaires
+          </p>
+          <div className="flex items-start gap-4 px-5 pb-4">
+            <div className="w-8 h-8 bg-primary-50 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+              <Clock size={15} className="text-primary-600" />
+            </div>
+            {medecin.horaires ? (
               <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">
                 {typeof medecin.horaires === 'string'
                   ? medecin.horaires
                   : JSON.stringify(medecin.horaires, null, 2)}
               </pre>
+            ) : (
+              <p className="text-sm text-gray-400 italic">Horaires non renseignés — contactez le cabinet</p>
+            )}
+          </div>
+        </div>
+
+        {/* RDV en ligne */}
+        <div className="bg-amber-50 rounded-2xl shadow-card overflow-hidden">
+          <div className="flex items-start gap-4 px-5 py-4">
+            <div className="w-8 h-8 bg-amber-100 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
+              <CalendarX size={15} className="text-amber-600" />
+            </div>
+            <div>
+              <p className="text-xs text-amber-700 font-semibold">Pas de prise de RDV en ligne</p>
+              <p className="text-xs text-amber-600 mt-0.5">Contactez directement le cabinet par téléphone pour réserver.</p>
             </div>
           </div>
-        )}
+        </div>
 
       </div>
 
       {/* CTA FIXE EN BAS */}
-      {medecin.telephone && (
-        <div
-          className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-100 px-4 py-3"
-          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 8px) + 12px)' }}
-        >
+      <div
+        className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-100 px-4 py-3"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 8px) + 12px)' }}
+      >
+        {medecin.telephone ? (
           <a
             href={`tel:${medecin.telephone}`}
             className="flex items-center justify-center gap-2.5 w-full bg-primary-600 text-white py-3.5 rounded-2xl font-bold text-base shadow-float tap-scale transition hover:bg-primary-700"
@@ -176,11 +193,15 @@ export default async function MedecinPage({ params }: Props) {
             <Phone size={19} />
             Appeler — {medecin.telephone}
           </a>
-        </div>
-      )}
+        ) : (
+          <div className="flex items-center justify-center gap-2.5 w-full bg-gray-100 text-gray-400 py-3.5 rounded-2xl font-semibold text-sm">
+            <PhoneOff size={17} />
+            Numéro de téléphone non disponible
+          </div>
+        )}
+      </div>
 
-      {/* ESPACE POUR LE CTA FIXE */}
-      {medecin.telephone && <div className="h-28" />}
+      <div className="h-28" />
 
     </div>
   );

@@ -6,10 +6,10 @@ import SearchBar from '@/components/SearchBar';
 import TerritoireSelector from '@/components/TerritoireSelector';
 import MedecinList from '@/components/MedecinList';
 import Filters from '@/components/Filters';
+import BottomNav from '@/components/BottomNav';
 import { Medecin, FiltersState } from '@/types/medecin';
 import { getMedecinsProches, getMedecinsByTerritoire, searchMedecins } from '@/lib/supabase';
-import { MapPin, SlidersHorizontal, X } from 'lucide-react';
-import Link from 'next/link';
+import { LocateFixed, SlidersHorizontal, X } from 'lucide-react';
 
 const Map = dynamic(() => import('@/components/Map'), { ssr: false });
 
@@ -23,16 +23,19 @@ const SHEET_TRANSLATE: Record<SheetState, string> = {
 };
 
 export default function HomePage() {
-  const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
-  const [mapCenter, setMapCenter]       = useState<[number, number] | null>(null);
-  const [medecins, setMedecins]         = useState<Medecin[]>([]);
-  const [loading, setLoading]           = useState(true);
-  const [fetchError, setFetchError]     = useState<string | null>(null);
-  const [searchMode, setSearchMode]     = useState<SearchMode>('proximity');
-  const [searchQuery, setSearchQuery]   = useState('');
-  const [territoire, setTerritoire]     = useState('Martinique');
-  const [sheetState, setSheetState]     = useState<SheetState>('peek');
-  const [showFilters, setShowFilters]   = useState(false);
+  const [userPosition, setUserPosition]       = useState<[number, number] | null>(null);
+  const [mapCenter, setMapCenter]             = useState<[number, number] | null>(null);
+  const [medecins, setMedecins]               = useState<Medecin[]>([]);
+  const [loading, setLoading]                 = useState(true);
+  const [fetchError, setFetchError]           = useState<string | null>(null);
+  const [geolocDenied, setGeolocDenied]       = useState(false);
+  const [geolocBannerDismissed, setGeolocBannerDismissed] = useState(false);
+  const [searchMode, setSearchMode]           = useState<SearchMode>('proximity');
+  const [searchQuery, setSearchQuery]         = useState('');
+  const [territoire, setTerritoire]           = useState('Martinique');
+  const [sheetState, setSheetState]           = useState<SheetState>('peek');
+  const [showFilters, setShowFilters]         = useState(false);
+  const [selectedMedecin, setSelectedMedecin] = useState<Medecin | null>(null);
   const [filters, setFilters] = useState<FiltersState>({
     specialite: '',
     distance: 10,
@@ -40,9 +43,9 @@ export default function HomePage() {
     accepteNouveauxPatients: false,
   });
 
-  const dragStartY        = useRef(0);
-  const dragStartState    = useRef<SheetState>('peek');
-  const fetchTimerRef     = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dragStartY     = useRef(0);
+  const dragStartState = useRef<SheetState>('peek');
+  const fetchTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchMedecins = useCallback(async (
     mode: SearchMode,
@@ -85,7 +88,6 @@ export default function HomePage() {
     setLoading(false);
   }, []);
 
-  // Fetch avec debounce — évite les requêtes multiples pendant que l'utilisateur ajuste les filtres
   const scheduleFetch = useCallback((
     mode: SearchMode,
     opts: { position?: [number, number]; territoire?: string; query?: string; filters: FiltersState },
@@ -95,22 +97,35 @@ export default function HomePage() {
     fetchTimerRef.current = setTimeout(() => fetchMedecins(mode, opts), delay);
   }, [fetchMedecins]);
 
-  // Géolocalisation
+  // ── Géolocalisation initiale ──────────────────────────────────────────────
   useEffect(() => {
     const fallback: [number, number] = [14.6037, -61.0588];
     if (!navigator.geolocation) {
-      setUserPosition(fallback); setMapCenter(fallback); return;
+      setUserPosition(fallback); setMapCenter(fallback); setGeolocDenied(true); return;
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const p: [number, number] = [pos.coords.latitude, pos.coords.longitude];
-        setUserPosition(p); setMapCenter(p);
+        setUserPosition(p); setMapCenter(p); setGeolocDenied(false);
       },
-      () => { setUserPosition(fallback); setMapCenter(fallback); }
+      () => { setUserPosition(fallback); setMapCenter(fallback); setGeolocDenied(true); }
     );
   }, []);
 
-  // Déclenchement des requêtes — debounce 400ms en mode proximité, immédiat sinon
+  // ── Relance la géolocalisation manuellement ───────────────────────────────
+  const handleGeolocate = useCallback(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const p: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+        setUserPosition(p); setMapCenter(p); setSearchMode('proximity');
+        setGeolocDenied(false); setGeolocBannerDismissed(false);
+      },
+      () => setGeolocDenied(true),
+    );
+  }, []);
+
+  // ── Déclenchement des requêtes ────────────────────────────────────────────
   useEffect(() => {
     if (!userPosition) return;
     const delay = searchMode === 'proximity' ? 400 : 0;
@@ -129,6 +144,18 @@ export default function HomePage() {
     else { setSearchQuery(query); setSearchMode('text'); }
   };
 
+  // Médecin sélectionné depuis la liste — centre la carte
+  const handleSelectFromList = useCallback((m: Medecin) => {
+    setSelectedMedecin(m);
+    setSheetState('half');
+  }, []);
+
+  // Médecin sélectionné depuis la carte — scroll dans la liste + expand sheet
+  const handleSelectFromMap = useCallback((m: Medecin) => {
+    setSelectedMedecin(m);
+    setSheetState('half');
+  }, []);
+
   const onDragStart = (e: React.TouchEvent | React.MouseEvent) => {
     dragStartY.current = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
     dragStartState.current = sheetState;
@@ -140,7 +167,8 @@ export default function HomePage() {
     else if (delta > 60) setSheetState(dragStartState.current === 'full' ? 'half' : 'peek');
   };
 
-  const listHeight = sheetState === 'full' ? 'calc(100vh - 130px)' : '140px';
+  const showBanner  = geolocDenied && !geolocBannerDismissed;
+  const listHeight  = sheetState === 'full' ? 'calc(100vh - 130px)' : '140px';
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-surface">
@@ -148,37 +176,69 @@ export default function HomePage() {
       {/* CARTE PLEIN ÉCRAN */}
       <div className="absolute inset-0">
         {mapCenter && userPosition && (
-          <Map userPosition={userPosition} mapCenter={mapCenter} medecins={medecins} />
+          <Map
+            userPosition={userPosition}
+            mapCenter={mapCenter}
+            medecins={medecins}
+            selectedMedecin={selectedMedecin}
+            onSelectMedecin={handleSelectFromMap}
+          />
         )}
       </div>
 
-      {/* BANNIÈRE ERREUR */}
+      {/* BANNIÈRE ERREUR RÉSEAU */}
       {fetchError && (
         <div className="absolute top-0 left-0 right-0 z-50 bg-red-500 text-white text-xs font-semibold text-center py-2 px-4">
           Erreur de connexion — {fetchError}
         </div>
       )}
 
+      {/* BANNIÈRE GÉOLOCALISATION REFUSÉE (fermable) */}
+      {showBanner && (
+        <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between bg-amber-500 text-white text-xs font-semibold py-2 px-4">
+          <span>Localisation désactivée — sélectionnez un territoire ou effectuez une recherche</span>
+          <button
+            onClick={() => setGeolocBannerDismissed(true)}
+            aria-label="Fermer la bannière"
+            className="ml-3 shrink-0 opacity-80 hover:opacity-100"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
       {/* OVERLAY HAUT */}
-      <div className="map-overlay">
+      <div className="map-overlay" style={{ top: showBanner ? 32 : 0 }}>
         <div className="flex items-center justify-between px-4 pt-5 pb-2">
           <div className="flex items-center gap-2.5">
             <div className="w-10 h-10 bg-primary-600 rounded-2xl flex items-center justify-center shadow-float">
-              <span className="text-white text-xl">🏥</span>
+              <span className="text-white text-xl" aria-hidden="true">🏥</span>
             </div>
             <div>
               <p className="text-sm font-bold text-gray-900 leading-none">Médecin Proche</p>
-              <p className="text-xs text-gray-500 mt-0.5">Guyane · Martinique · Guadeloupe</p>
+              <p className="text-xs text-gray-500 mt-0.5">Martinique · Guadeloupe · Guyane · Réunion · Mayotte</p>
             </div>
           </div>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-float transition-colors ${
-              showFilters ? 'bg-primary-600 text-white' : 'bg-white text-gray-500'
-            }`}
-          >
-            {showFilters ? <X size={17} /> : <SlidersHorizontal size={17} />}
-          </button>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleGeolocate}
+              aria-label="Me localiser"
+              className="w-10 h-10 rounded-2xl bg-white flex items-center justify-center shadow-float transition-colors text-gray-500 hover:text-primary-600"
+            >
+              <LocateFixed size={17} />
+            </button>
+
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              aria-label={showFilters ? 'Fermer les filtres' : 'Ouvrir les filtres'}
+              className={`w-10 h-10 rounded-2xl flex items-center justify-center shadow-float transition-colors ${
+                showFilters ? 'bg-primary-600 text-white' : 'bg-white text-gray-500'
+              }`}
+            >
+              {showFilters ? <X size={17} /> : <SlidersHorizontal size={17} />}
+            </button>
+          </div>
         </div>
 
         <div className="px-4 pb-2">
@@ -228,28 +288,23 @@ export default function HomePage() {
         </div>
 
         <div className="overflow-y-auto no-scrollbar" style={{ height: listHeight }}>
-          <MedecinList medecins={medecins} loading={loading} mode={searchMode} territoire={territoire} />
+          <MedecinList
+            medecins={medecins}
+            loading={loading}
+            mode={searchMode}
+            territoire={territoire}
+            onSelectMedecin={handleSelectFromList}
+            selectedMedecinId={selectedMedecin?.id}
+          />
         </div>
       </div>
 
       {/* BOTTOM NAV */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-t border-gray-100"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom, 8px)' }}>
-        <div className="flex items-center justify-around px-6 pt-2 pb-2">
-          <button onClick={() => setSheetState('peek')} className="flex flex-col items-center gap-0.5 tap-scale">
-            <MapPin size={22} className="text-primary-600" />
-            <span className="text-[11px] font-semibold text-primary-600">Carte</span>
-          </button>
-          <button onClick={() => setSheetState(sheetState === 'full' ? 'peek' : 'full')} className="flex flex-col items-center gap-0.5 tap-scale">
-            <span className="text-[22px]">🏥</span>
-            <span className="text-[11px] font-medium text-gray-400">Médecins</span>
-          </button>
-          <Link href="/favoris" className="flex flex-col items-center gap-0.5 tap-scale">
-            <span className="text-[22px]">❤️</span>
-            <span className="text-[11px] font-medium text-gray-400">Favoris</span>
-          </Link>
-        </div>
-      </nav>
+      <BottomNav
+        activePage="map"
+        onMapClick={() => setSheetState('peek')}
+        onListClick={() => setSheetState(sheetState === 'full' ? 'peek' : 'full')}
+      />
 
     </div>
   );

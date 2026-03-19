@@ -1,26 +1,37 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Phone, MapPin, ChevronRight } from 'lucide-react';
 import { Medecin } from '@/types/medecin';
 import { avatarBg, getInitiales } from '@/lib/avatar';
+import { toTitleCase } from '@/lib/utils';
 
 interface MedecinCardProps {
   medecin: Medecin;
+  onSelect?: () => void;
+  selected?: boolean;
 }
 
-export default function MedecinCard({ medecin }: MedecinCardProps) {
-  const router = useRouter();
-  const distanceKm = medecin.distance ? (medecin.distance / 1000).toFixed(1) : null;
-  const initiales = getInitiales(medecin.prenom, medecin.nom);
+export default function MedecinCard({ medecin, onSelect, selected }: MedecinCardProps) {
+  const rawDist = medecin.distance;
+  const distanceLabel = rawDist !== undefined
+    ? rawDist < 100 ? 'À côté' : `${(rawDist / 1000).toFixed(1)} km`
+    : null;
+
+  const displayNom = toTitleCase(medecin.nom);
+  const initiales  = getInitiales(medecin.prenom, medecin.nom);
 
   return (
     <div
-      onClick={() => router.push(`/medecin/${medecin.id}`)}
-      className="flex items-center gap-3 px-4 py-3.5 bg-white active:bg-gray-50 transition-colors cursor-pointer border-b border-gray-50"
+      data-medecin-id={medecin.id}
+      onClick={onSelect}
+      role={onSelect ? 'button' : undefined}
+      className={`flex items-center gap-3 px-4 py-3.5 transition-colors cursor-pointer border-b border-gray-50 ${
+        selected ? 'bg-primary-50 border-l-2 border-l-primary-500' : 'bg-white active:bg-gray-50'
+      }`}
     >
-      {/* Avatar */}
-      <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-sm shrink-0 ${avatarBg(medecin.nom)}`}>
+      {/* Avatar coloré par spécialité */}
+      <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-sm shrink-0 ${avatarBg(medecin.nom, medecin.specialite)}`}>
         {initiales}
       </div>
 
@@ -28,11 +39,11 @@ export default function MedecinCard({ medecin }: MedecinCardProps) {
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
           <p className="font-semibold text-gray-900 text-sm leading-tight truncate">
-            Dr {medecin.prenom} {medecin.nom}
+            Dr {medecin.prenom} {displayNom}
           </p>
-          {distanceKm && (
+          {distanceLabel && (
             <span className="text-[11px] font-medium text-gray-400 shrink-0 bg-gray-100 px-1.5 py-0.5 rounded-full">
-              {distanceKm} km
+              {distanceLabel}
             </span>
           )}
         </div>
@@ -58,12 +69,20 @@ export default function MedecinCard({ medecin }: MedecinCardProps) {
           <a
             href={`tel:${medecin.telephone}`}
             onClick={(e) => e.stopPropagation()}
+            aria-label={`Appeler ${medecin.prenom} ${displayNom}`}
             className="w-8 h-8 rounded-xl bg-primary-50 flex items-center justify-center tap-scale"
           >
             <Phone size={14} className="text-primary-600" />
           </a>
         )}
-        <ChevronRight size={16} className="text-gray-300 ml-1" />
+        <Link
+          href={`/medecin/${medecin.id}`}
+          onClick={(e) => e.stopPropagation()}
+          aria-label={`Voir la fiche de ${medecin.prenom} ${displayNom}`}
+          className="w-8 h-8 flex items-center justify-center"
+        >
+          <ChevronRight size={16} className="text-gray-300" />
+        </Link>
       </div>
     </div>
   );
