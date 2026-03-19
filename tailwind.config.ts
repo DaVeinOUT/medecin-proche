@@ -4,6 +4,7 @@ const config: Config = {
   content: [
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './lib/**/*.{js,ts}',          // ← avatar.ts, utils.ts — classes couleur spécialités
   ],
   theme: {
     extend: {
