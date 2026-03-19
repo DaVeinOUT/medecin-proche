@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -14,6 +14,25 @@
   font-size: 9px !important;
 }
 
+/* ── Clustering markers — style personnalisé (override défaut jaune/orange) ── */
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+  background-color: rgba(13, 148, 136, 0.18) !important;
+}
+.marker-cluster-small div,
+.marker-cluster-medium div,
+.marker-cluster-large div {
+  background-color: rgba(13, 148, 136, 0.85) !important;
+  color: white !important;
+  font-weight: 800 !important;
+  font-size: 13px !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+}
+.marker-cluster {
+  border-radius: 50% !important;
+}
+
 /* ── Design Tokens ── */
 :root {
   --bottom-sheet-peek: 220px;
@@ -25,9 +44,27 @@
 /* ── Base ── */
 html, body {
   font-family: 'Inter', system-ui, sans-serif;
-  background: #F8FAFC;
+  background: #f8fffe;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
+}
+
+/* ── Overlay carte — dégradé blanc→transparent pour lisibilité ── */
+.map-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 20;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.97) 0%,
+    rgba(255,255,255,0.90) 65%,
+    transparent 100%
+  );
+  padding-bottom: 16px;
+}
+.map-overlay > * {
+  pointer-events: auto;
 }
 
 /* ── Bottom Sheet ── */
@@ -35,42 +72,31 @@ html, body {
   position: fixed;
   left: 0; right: 0; bottom: 0;
   background: #fff;
-  border-radius: 20px 20px 0 0;
-  box-shadow: 0 -4px 32px rgba(0,0,0,0.10);
+  border-radius: 22px 22px 0 0;
+  box-shadow: 0 -4px 32px rgba(0,0,0,0.08);
   transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
   will-change: transform;
   z-index: 40;
 }
 .bottom-sheet-handle {
   width: 36px; height: 4px;
-  background: #E2E8F0;
+  background: #D1FAF5;
   border-radius: 2px;
   margin: 12px auto 0;
 }
 
-/* ── Floating overlay ── */
-.map-overlay {
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  z-index: 20;
-  pointer-events: none;
-}
-.map-overlay > * {
-  pointer-events: auto;
-}
-
-/* ── Badge pill ── */
+/* ── Badge pill — couleurs solides pour meilleure lisibilité ── */
 .badge-green {
-  background: #BBF7D0;
-  color: #166534;
+  background: #059669;
+  color: white;
 }
 .badge-red {
-  background: #FECACA;
-  color: #991B1B;
+  background: #dc2626;
+  color: white;
 }
 .badge-blue {
-  background: #BFDBFE;
-  color: #1E40AF;
+  background: #0d9488;
+  color: white;
 }
 
 /* ── Scrollbar hide ── */
@@ -79,3 +105,18 @@ html, body {
 
 /* ── Tap animation ── */
 .tap-scale:active { transform: scale(0.97); }
+
+/* ── Carte médecin avec ombre ── */
+.medecin-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(13,148,136,0.08);
+  margin: 0 12px 8px;
+  transition: box-shadow 0.2s ease;
+}
+.medecin-card:active {
+  box-shadow: 0 1px 6px rgba(13,148,136,0.06);
+}
+.medecin-card.selected {
+  box-shadow: 0 0 0 2px #0d9488, 0 4px 16px rgba(13,148,136,0.15);
+}

@@ -8,23 +8,29 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Palette tropicale — turquoise des Caraïbes
         primary: {
-          50:  '#EFF6FF',
-          100: '#DBEAFE',
-          200: '#BFDBFE',
-          500: '#3B82F6',
-          600: '#1A6FE8',
-          700: '#1558C0',
+          50:  '#f0fdfa',
+          100: '#ccfbf1',
+          200: '#99f6e4',
+          500: '#14b8a6',
+          600: '#0d9488',
+          700: '#0f766e',
         },
-        success: '#00C853',
-        warning: '#FF6D00',
-        surface: '#F8FAFC',
+        // Corail chaud — accentue les actions importantes
+        coral: {
+          50:  '#fff7ed',
+          400: '#fb923c',
+          500: '#f97316',
+          600: '#ea580c',
+        },
+        surface: '#f8fffe',   // blanc légèrement teinté teal
       },
       boxShadow: {
-        card:       '0 2px 12px rgba(0,0,0,0.08)',
-        'card-hover':'0 6px 24px rgba(0,0,0,0.14)',
-        float:      '0 4px 20px rgba(0,0,0,0.15)',
-        sheet:      '0 -4px 32px rgba(0,0,0,0.10)',
+        card:        '0 2px 16px rgba(13,148,136,0.08)',
+        'card-hover':'0 6px 24px rgba(13,148,136,0.16)',
+        float:       '0 4px 20px rgba(0,0,0,0.12)',
+        sheet:       '0 -4px 32px rgba(0,0,0,0.08)',
       },
       borderRadius: {
         '2xl': '16px',

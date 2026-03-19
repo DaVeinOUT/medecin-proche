@@ -46,15 +46,21 @@ export default async function MedecinPage({ params }: Props) {
   return (
     <div className="min-h-screen bg-surface">
 
-      {/* HEADER HERO */}
-      <div className="bg-white shadow-card">
-        <div className="max-w-2xl mx-auto px-4 pt-12 pb-6">
-          <div className="flex items-center justify-between mb-6">
+      {/* ── HERO PLEINE LARGEUR avec dégradé spécialité ── */}
+      <div className={`relative bg-gradient-to-br ${gradient} overflow-hidden`}>
+        {/* Cercles décoratifs — texture tropicale subtile */}
+        <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-white/10 pointer-events-none" />
+        <div className="absolute -bottom-12 -left-12 w-44 h-44 rounded-full bg-white/10 pointer-events-none" />
+
+        <div className="max-w-2xl mx-auto px-4 pt-14 pb-10 relative z-10">
+
+          {/* Navigation */}
+          <div className="flex items-center justify-between mb-8">
             <Link
               href="/"
-              className="inline-flex items-center gap-1 text-primary-600 text-sm font-semibold tap-scale"
+              className="inline-flex items-center gap-1.5 text-white/90 text-sm font-semibold bg-white/20 backdrop-blur-sm px-3.5 py-2 rounded-xl tap-scale"
             >
-              <ChevronLeft size={16} />
+              <ChevronLeft size={15} />
               Retour
             </Link>
             <div className="flex items-center gap-2">
@@ -67,44 +73,41 @@ export default async function MedecinPage({ params }: Props) {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            {/* Avatar coloré par spécialité */}
-            <div className={`w-20 h-20 rounded-3xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-float shrink-0`}>
-              <span className="text-white text-2xl font-bold">{initiales}</span>
+          {/* Identité — centré, hiérarchie forte */}
+          <div className="text-center">
+            <div className="w-24 h-24 rounded-3xl bg-white/25 backdrop-blur-sm border-2 border-white/40 flex items-center justify-center mx-auto mb-5 shadow-float">
+              <span className="text-white text-3xl font-extrabold tracking-tight">{initiales}</span>
             </div>
 
-            {/* Identité */}
-            <div className="flex-1 min-w-0">
-              <h1 className="text-xl font-bold text-gray-900 leading-tight">
-                Dr {medecin.prenom} {displayNom}
-              </h1>
-              <span className="inline-block bg-primary-100 text-primary-700 text-xs font-semibold px-3 py-1 rounded-full mt-1.5">
-                {medecin.specialite}
-              </span>
-              <div className="flex items-center gap-2 mt-2">
-                {medecin.accepte_nouveaux_patients ? (
-                  <span className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">
-                    <CheckCircle size={13} />
-                    Accepte de nouveaux patients
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1.5 text-xs font-semibold text-red-700 bg-red-50 px-2.5 py-1 rounded-full">
-                    <XCircle size={13} />
-                    Complet
-                  </span>
-                )}
-              </div>
+            <h1 className="text-2xl font-extrabold text-white leading-tight">
+              Dr {medecin.prenom} {displayNom}
+            </h1>
+            <p className="text-white/80 text-sm font-medium mt-1">{medecin.specialite}</p>
+
+            <div className="mt-4 flex justify-center">
+              {medecin.accepte_nouveaux_patients ? (
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold bg-white/90 text-emerald-700 px-4 py-1.5 rounded-full shadow-sm">
+                  <CheckCircle size={13} />
+                  Accepte de nouveaux patients
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 text-xs font-bold bg-white/90 text-red-700 px-4 py-1.5 rounded-full shadow-sm">
+                  <XCircle size={13} />
+                  Cabinet complet
+                </span>
+              )}
             </div>
           </div>
+
         </div>
       </div>
 
-      {/* CONTENU */}
+      {/* ── CONTENU ── */}
       <div className="max-w-2xl mx-auto px-4 py-5 space-y-3">
 
         {/* Informations */}
         <div className="bg-white rounded-2xl shadow-card overflow-hidden">
-          <p className="px-5 pt-4 pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400">
+          <p className="px-5 pt-4 pb-2 text-[11px] font-bold uppercase tracking-widest text-gray-400">
             Informations
           </p>
 
@@ -115,8 +118,8 @@ export default async function MedecinPage({ params }: Props) {
               </div>
               <div>
                 <p className="text-xs text-gray-400 font-medium">Adresse</p>
-                <p className="text-sm text-gray-800 font-medium">{medecin.adresse}</p>
-                <p className="text-sm text-gray-600">{medecin.ville}</p>
+                <p className="text-sm text-gray-800 font-semibold">{medecin.adresse}</p>
+                <p className="text-sm text-gray-500">{medecin.ville}</p>
               </div>
             </div>
 
@@ -126,7 +129,7 @@ export default async function MedecinPage({ params }: Props) {
               </div>
               <div>
                 <p className="text-xs text-gray-400 font-medium">Secteur</p>
-                <p className="text-sm text-gray-800 font-medium">Secteur {medecin.secteur}</p>
+                <p className="text-sm text-gray-800 font-semibold">Secteur {medecin.secteur}</p>
               </div>
             </div>
 
@@ -137,16 +140,16 @@ export default async function MedecinPage({ params }: Props) {
                 </div>
                 <div>
                   <p className="text-xs text-gray-400 font-medium">Langues parlées</p>
-                  <p className="text-sm text-gray-800 font-medium">{medecin.langues.join(', ')}</p>
+                  <p className="text-sm text-gray-800 font-semibold">{medecin.langues.join(', ')}</p>
                 </div>
               </div>
             )}
           </div>
         </div>
 
-        {/* Horaires — toujours visible */}
+        {/* Horaires — toujours affiché */}
         <div className="bg-white rounded-2xl shadow-card overflow-hidden">
-          <p className="px-5 pt-4 pb-2 text-[11px] font-semibold uppercase tracking-widest text-gray-400">
+          <p className="px-5 pt-4 pb-2 text-[11px] font-bold uppercase tracking-widest text-gray-400">
             Horaires
           </p>
           <div className="flex items-start gap-4 px-5 pb-4">
@@ -166,21 +169,21 @@ export default async function MedecinPage({ params }: Props) {
         </div>
 
         {/* RDV en ligne */}
-        <div className="bg-amber-50 rounded-2xl shadow-card overflow-hidden">
+        <div className="bg-amber-50 border border-amber-100 rounded-2xl overflow-hidden">
           <div className="flex items-start gap-4 px-5 py-4">
             <div className="w-8 h-8 bg-amber-100 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
               <CalendarX size={15} className="text-amber-600" />
             </div>
             <div>
-              <p className="text-xs text-amber-700 font-semibold">Pas de prise de RDV en ligne</p>
-              <p className="text-xs text-amber-600 mt-0.5">Contactez directement le cabinet par téléphone pour réserver.</p>
+              <p className="text-xs text-amber-700 font-bold">Pas de prise de RDV en ligne</p>
+              <p className="text-xs text-amber-600 mt-0.5 leading-relaxed">Contactez directement le cabinet par téléphone pour réserver une consultation.</p>
             </div>
           </div>
         </div>
 
       </div>
 
-      {/* CTA FIXE EN BAS */}
+      {/* ── CTA FIXE EN BAS ── */}
       <div
         className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-100 px-4 py-3"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 8px) + 12px)' }}
@@ -188,7 +191,7 @@ export default async function MedecinPage({ params }: Props) {
         {medecin.telephone ? (
           <a
             href={`tel:${medecin.telephone}`}
-            className="flex items-center justify-center gap-2.5 w-full bg-primary-600 text-white py-3.5 rounded-2xl font-bold text-base shadow-float tap-scale transition hover:bg-primary-700"
+            className={`flex items-center justify-center gap-2.5 w-full bg-gradient-to-r ${gradient} text-white py-3.5 rounded-2xl font-bold text-base shadow-float tap-scale`}
           >
             <Phone size={19} />
             Appeler — {medecin.telephone}

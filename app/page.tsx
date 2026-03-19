@@ -193,9 +193,9 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* BANNIÈRE GÉOLOCALISATION REFUSÉE (fermable) */}
+      {/* BANNIÈRE GÉOLOCALISATION REFUSÉE (fermable) — bleu informatif, non alarmant */}
       {showBanner && (
-        <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between bg-amber-500 text-white text-xs font-semibold py-2 px-4">
+        <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between bg-sky-500 text-white text-xs font-semibold py-2 px-4">
           <span>Localisation désactivée — sélectionnez un territoire ou effectuez une recherche</span>
           <button
             onClick={() => setGeolocBannerDismissed(true)}

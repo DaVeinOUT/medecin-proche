@@ -26,36 +26,34 @@ export default function MedecinCard({ medecin, onSelect, selected }: MedecinCard
       data-medecin-id={medecin.id}
       onClick={onSelect}
       role={onSelect ? 'button' : undefined}
-      className={`flex items-center gap-3 px-4 py-3.5 transition-colors cursor-pointer border-b border-gray-50 ${
-        selected ? 'bg-primary-50 border-l-2 border-l-primary-500' : 'bg-white active:bg-gray-50'
-      }`}
+      className={`medecin-card flex items-center gap-3 px-4 py-3.5 cursor-pointer ${selected ? 'selected' : ''}`}
     >
       {/* Avatar coloré par spécialité */}
-      <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-sm shrink-0 ${avatarBg(medecin.nom, medecin.specialite)}`}>
+      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-extrabold text-sm shrink-0 ${avatarBg(medecin.nom, medecin.specialite)}`}>
         {initiales}
       </div>
 
       {/* Infos */}
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
-          <p className="font-semibold text-gray-900 text-sm leading-tight truncate">
+          <p className="font-bold text-gray-900 text-[15px] leading-tight truncate">
             Dr {medecin.prenom} {displayNom}
           </p>
           {distanceLabel && (
-            <span className="text-[11px] font-medium text-gray-400 shrink-0 bg-gray-100 px-1.5 py-0.5 rounded-full">
+            <span className="text-[11px] font-semibold text-gray-400 shrink-0 bg-gray-100 px-1.5 py-0.5 rounded-full">
               {distanceLabel}
             </span>
           )}
         </div>
 
-        <p className="text-xs text-primary-600 font-medium mt-0.5 truncate">{medecin.specialite}</p>
+        <p className="text-xs text-primary-600 font-semibold mt-0.5 truncate">{medecin.specialite}</p>
 
-        <div className="flex items-center gap-3 mt-1.5">
+        <div className="flex items-center gap-2 mt-1.5">
           <div className="flex items-center gap-1 text-gray-400 text-[11px] truncate">
             <MapPin size={10} />
             <span className="truncate">{medecin.ville}</span>
           </div>
-          <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full shrink-0 ${
+          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0 ${
             medecin.accepte_nouveaux_patients ? 'badge-green' : 'badge-red'
           }`}>
             {medecin.accepte_nouveaux_patients ? 'Disponible' : 'Complet'}
@@ -70,9 +68,9 @@ export default function MedecinCard({ medecin, onSelect, selected }: MedecinCard
             href={`tel:${medecin.telephone}`}
             onClick={(e) => e.stopPropagation()}
             aria-label={`Appeler ${medecin.prenom} ${displayNom}`}
-            className="w-8 h-8 rounded-xl bg-primary-50 flex items-center justify-center tap-scale"
+            className="w-9 h-9 rounded-xl bg-primary-50 flex items-center justify-center tap-scale"
           >
-            <Phone size={14} className="text-primary-600" />
+            <Phone size={15} className="text-primary-600" />
           </a>
         )}
         <Link
