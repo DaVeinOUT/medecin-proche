@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { MapPin, List } from 'lucide-react';
+import { MapPin, List, Heart } from 'lucide-react';
 
 interface BottomNavProps {
   activePage?: 'map' | 'favoris';
@@ -71,7 +71,7 @@ export default function BottomNav({ activePage = 'map', listActive = false, onMa
           aria-label="Mes médecins favoris"
           className={`flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-2xl tap-scale ${isFavoris ? 'bg-primary-50' : ''}`}
         >
-          <span className="text-[22px]" aria-hidden="true">❤️</span>
+          <Heart size={22} className={isFavoris ? 'text-primary-600 fill-primary-600' : 'text-gray-400'} aria-hidden="true" />
           <span className={`text-[11px] ${isFavoris ? 'font-bold text-primary-600' : 'font-medium text-gray-400'}`}>
             Favoris
           </span>

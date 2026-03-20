@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import MedecinCard from './MedecinCard';
 import { Medecin } from '@/types/medecin';
 import { toTitleCase } from '@/lib/utils';
+import { Stethoscope, Globe } from 'lucide-react';
 
 const PAGE_SIZE = 15;
 
@@ -80,7 +81,10 @@ export default function MedecinList({
     return (
       <div className="flex flex-col items-center justify-center py-10 px-6 text-center">
         <div className="w-16 h-16 bg-primary-50 rounded-3xl flex items-center justify-center mb-4">
-          <span className="text-3xl">{couvertureLimitee ? '🌏' : '🏥'}</span>
+          {couvertureLimitee
+            ? <Globe size={32} className="text-primary-400" aria-hidden="true" />
+            : <Stethoscope size={32} className="text-primary-400" aria-hidden="true" />
+          }
         </div>
         <p className="font-semibold text-gray-800">Aucun médecin trouvé</p>
         <p className="text-gray-400 text-sm mt-1 max-w-xs leading-relaxed">

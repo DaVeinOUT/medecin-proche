@@ -9,7 +9,8 @@ import Filters from '@/components/Filters';
 import BottomNav from '@/components/BottomNav';
 import { Medecin, FiltersState } from '@/types/medecin';
 import { getMedecinsProches, getMedecinsByTerritoire, searchMedecins } from '@/lib/supabase';
-import { LocateFixed, SlidersHorizontal, X } from 'lucide-react';
+import { LocateFixed, SlidersHorizontal, X, Stethoscope } from 'lucide-react';
+import { POSITIONS_DOM } from '@/lib/geo';
 
 const Map = dynamic(() => import('@/components/Map'), { ssr: false });
 
@@ -23,14 +24,14 @@ const SHEET_TRANSLATE: Record<SheetState, string> = {
 };
 
 export default function HomePage() {
-  const [userPosition, setUserPosition]       = useState<[number, number] | null>(null);
-  const [mapCenter, setMapCenter]             = useState<[number, number] | null>(null);
+  const [userPosition, setUserPosition]       = useState<[number, number]>(POSITIONS_DOM.martinique);
+  const [mapCenter, setMapCenter]             = useState<[number, number]>(POSITIONS_DOM.martinique);
   const [medecins, setMedecins]               = useState<Medecin[]>([]);
   const [loading, setLoading]                 = useState(true);
   const [fetchError, setFetchError]           = useState<string | null>(null);
   const [geolocDenied, setGeolocDenied]       = useState(false);
   const [geolocBannerDismissed, setGeolocBannerDismissed] = useState(false);
-  const [searchMode, setSearchMode]           = useState<SearchMode>('proximity');
+  const [searchMode, setSearchMode]           = useState<SearchMode>('territoire');
   const [searchQuery, setSearchQuery]         = useState('');
   const [territoire, setTerritoire]           = useState('Martinique');
   const [sheetState, setSheetState]           = useState<SheetState>('peek');
@@ -97,20 +98,7 @@ export default function HomePage() {
     fetchTimerRef.current = setTimeout(() => fetchMedecins(mode, opts), delay);
   }, [fetchMedecins]);
 
-  // ── Géolocalisation initiale ──────────────────────────────────────────────
-  useEffect(() => {
-    const fallback: [number, number] = [14.6037, -61.0588];
-    if (!navigator.geolocation) {
-      setUserPosition(fallback); setMapCenter(fallback); setGeolocDenied(true); return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const p: [number, number] = [pos.coords.latitude, pos.coords.longitude];
-        setUserPosition(p); setMapCenter(p); setGeolocDenied(false);
-      },
-      () => { setUserPosition(fallback); setMapCenter(fallback); setGeolocDenied(true); }
-    );
-  }, []);
+  // Pas de géolocalisation automatique au chargement — l'utilisateur déclenche via "Me localiser"
 
   // ── Relance la géolocalisation manuellement ───────────────────────────────
   const handleGeolocate = useCallback(() => {
@@ -127,7 +115,7 @@ export default function HomePage() {
 
   // ── Déclenchement des requêtes ────────────────────────────────────────────
   useEffect(() => {
-    if (!userPosition) return;
+    if (searchMode === 'proximity' && !userPosition) return;
     const delay = searchMode === 'proximity' ? 400 : 0;
     scheduleFetch(searchMode, {
       position: mapCenter ?? userPosition,
@@ -175,7 +163,7 @@ export default function HomePage() {
 
       {/* CARTE PLEIN ÉCRAN */}
       <div className="absolute inset-0">
-        {mapCenter && userPosition && (
+        {mapCenter && (
           <Map
             userPosition={userPosition}
             mapCenter={mapCenter}
@@ -212,7 +200,7 @@ export default function HomePage() {
         <div className="flex items-center justify-between px-4 pt-5 pb-2">
           <div className="flex items-center gap-2.5">
             <div className="w-10 h-10 bg-primary-600 rounded-2xl flex items-center justify-center shadow-float">
-              <span className="text-white text-xl" aria-hidden="true">🏥</span>
+              <Stethoscope size={20} className="text-white" aria-hidden="true" />
             </div>
             <div>
               <p className="text-sm font-bold text-gray-900 leading-none">Médecin Proche</p>

@@ -8,11 +8,11 @@ interface TerritoireSelectorProps {
 }
 
 const TERRITOIRES = [
-  { label: 'Martinique', emoji: '🌺', key: 'martinique', position: POSITIONS_DOM.martinique },
-  { label: 'Guadeloupe', emoji: '🌸', key: 'guadeloupe', position: POSITIONS_DOM.guadeloupe },
-  { label: 'Guyane',     emoji: '🌿', key: 'guyane',     position: POSITIONS_DOM.guyane     },
-  { label: 'Réunion',    emoji: '🏝️',  key: 'reunion',   position: POSITIONS_DOM.reunion    },
-  { label: 'Mayotte',    emoji: '🌊', key: 'mayotte',     position: POSITIONS_DOM.mayotte    },
+  { label: 'Martinique', flag: '🇲🇶', key: 'martinique', position: POSITIONS_DOM.martinique },
+  { label: 'Guadeloupe', flag: '🇬🇵', key: 'guadeloupe', position: POSITIONS_DOM.guadeloupe },
+  { label: 'Guyane',     flag: '🇬🇫', key: 'guyane',     position: POSITIONS_DOM.guyane     },
+  { label: 'Réunion',    flag: '🇷🇪', key: 'reunion',    position: POSITIONS_DOM.reunion    },
+  { label: 'Mayotte',    flag: '🇾🇹', key: 'mayotte',    position: POSITIONS_DOM.mayotte    },
 ];
 
 export default function TerritoireSelector({ onSelect, territoire }: TerritoireSelectorProps) {
@@ -32,7 +32,7 @@ export default function TerritoireSelector({ onSelect, territoire }: TerritoireS
                 : 'bg-white text-gray-600 hover:bg-primary-50 hover:text-primary-600'
             }`}
           >
-            <span aria-hidden="true">{t.emoji}</span>
+            <span aria-hidden="true">{t.flag}</span>
             {t.label}
           </button>
         );

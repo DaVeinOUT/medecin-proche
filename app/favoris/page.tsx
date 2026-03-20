@@ -4,7 +4,7 @@ import { useFavoris } from '@/hooks/useFavoris';
 import MedecinCard from '@/components/MedecinCard';
 import BottomNav from '@/components/BottomNav';
 import Link from 'next/link';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Heart, Stethoscope, MapPin } from 'lucide-react';
 import { Medecin } from '@/types/medecin';
 
 export default function FavorisPage() {
@@ -43,11 +43,10 @@ export default function FavorisPage() {
             <div className="relative w-32 h-32 mb-6">
               <div className="absolute inset-0 bg-primary-100 rounded-full" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-6xl" aria-hidden="true">🌺</span>
+                <Stethoscope size={56} className="text-primary-400" aria-hidden="true" />
               </div>
-              {/* Petits éléments décoratifs */}
-              <div className="absolute -top-1 -right-1 w-8 h-8 bg-coral-50 rounded-full flex items-center justify-center border-2 border-white">
-                <span className="text-base" aria-hidden="true">❤️</span>
+              <div className="absolute -top-1 -right-1 w-8 h-8 bg-red-50 rounded-full flex items-center justify-center border-2 border-white">
+                <Heart size={16} className="text-red-400 fill-red-400" aria-hidden="true" />
               </div>
             </div>
 
@@ -60,7 +59,8 @@ export default function FavorisPage() {
               href="/"
               className="mt-8 bg-gradient-to-r from-primary-500 to-primary-700 text-white text-sm font-bold px-6 py-3 rounded-2xl tap-scale shadow-float transition"
             >
-              Trouver un médecin 🗺️
+              <MapPin size={15} className="inline mr-1.5" aria-hidden="true" />
+              Trouver un médecin
             </Link>
           </div>
 

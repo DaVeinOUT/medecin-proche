@@ -66,6 +66,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
             onChange={(e) => handleChange(e.target.value)}
             onFocus={() => suggestions.length > 0 && setShowSugg(true)}
             placeholder="Médecin, spécialité ou ville..."
+            role="combobox"
             aria-label="Rechercher un médecin, une spécialité ou une ville"
             aria-autocomplete="list"
             aria-expanded={showSugg}

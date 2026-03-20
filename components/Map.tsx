@@ -133,7 +133,15 @@ export default function Map({ userPosition, mapCenter, medecins, selectedMedecin
         ? `<span style="color:#9ca3af;font-size:10px"> · ${(m.distance / 1000).toFixed(1)} km</span>`
         : '';
 
-      const marker = L.marker([m.lat, m.lng], { icon: medecinIcon })
+      const markerIcon = L.divIcon({
+        className: '',
+        html: `<div style="width:28px;height:28px;background:${BRAND_TEAL};border:2.5px solid white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 8px rgba(0,0,0,0.25)"><div style="transform:rotate(45deg);width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:13px;color:white">+</div></div><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap">Dr ${prenom} ${nom} — ${specialite}</span>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 28],
+        popupAnchor: [0, -30],
+      });
+
+      const marker = L.marker([m.lat, m.lng], { icon: markerIcon, title: `Dr ${prenom} ${nom} — ${specialite}` })
         .bindPopup(`
           <div style="font-size:12px;min-width:160px;line-height:1.5">
             <p style="font-weight:800;margin:0 0 1px;font-size:13px">Dr ${prenom} ${nom}</p>
