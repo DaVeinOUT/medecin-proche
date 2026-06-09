@@ -65,7 +65,9 @@ CREATE INDEX IF NOT EXISTS idx_medecins_territoire_specialite
 -- 4. Trigger : mise à jour automatique de updated_at
 -- ============================================================
 CREATE OR REPLACE FUNCTION update_updated_at()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+SET search_path = public
+AS $$
 BEGIN
   NEW.updated_at = now();
   RETURN NEW;
@@ -104,7 +106,9 @@ RETURNS TABLE (
   lng                       FLOAT,
   distance                  FLOAT  -- en mètres
 )
-LANGUAGE sql STABLE AS $$
+LANGUAGE sql STABLE
+SET search_path = public
+AS $$
   SELECT
     m.id,
     m.nom,
@@ -129,7 +133,7 @@ LANGUAGE sql STABLE AS $$
   WHERE ST_DWithin(
     m.localisation,
     ST_MakePoint(user_lng, user_lat)::geography,
-    rayon_km * 1000  -- convertir km → mètres
+    LEAST(GREATEST(rayon_km, 1), 100) * 1000  -- rayon borné 1–100 km, en mètres
   )
   ORDER BY distance ASC
   LIMIT 50;
@@ -146,11 +150,10 @@ CREATE POLICY "lecture_publique"
   ON medecins FOR SELECT
   USING (true);
 
--- Écriture réservée aux admins authentifiés
+-- Écriture : AUCUNE politique. Seul le script d'import (service_role,
+-- qui bypasse le RLS) peut écrire. Ne pas recréer de politique d'écriture
+-- tant qu'il n'y a pas de vrai flux d'authentification admin.
 DROP POLICY IF EXISTS "ecriture_admin" ON medecins;
-CREATE POLICY "ecriture_admin"
-  ON medecins FOR ALL
-  USING (auth.role() = 'authenticated');
 
 -- ============================================================
 -- 7. Vue pratique : médecins avec lat/lng extraits
@@ -164,6 +167,12 @@ SELECT
   ST_X(localisation::geometry) AS lng,
   created_at, updated_at
 FROM medecins;
+
+-- La vue respecte le RLS de l'appelant (et non du propriétaire)
+ALTER VIEW medecins_vue SET (security_invoker = true);
+
+-- Table système PostGIS : retirer l'accès API (RLS impossible, table supabase_admin)
+REVOKE SELECT ON TABLE public.spatial_ref_sys FROM anon, authenticated;
 
 -- ============================================================
 -- 8. Données de test (DOM-TOM)
