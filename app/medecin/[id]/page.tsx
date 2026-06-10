@@ -2,13 +2,19 @@ import type { Metadata } from 'next';
 import { getMedecinById } from '@/lib/supabase';
 import { avatarGradient, getInitiales } from '@/lib/avatar';
 import { toTitleCase } from '@/lib/utils';
-import { Phone, PhoneOff, MapPin, Clock, Globe, Users, ChevronLeft, CheckCircle, XCircle, CalendarX, Navigation } from 'lucide-react';
+import { Phone, PhoneOff, MapPin, Clock, Globe, Users, ChevronLeft, CheckCircle, XCircle, CalendarX, Navigation, Flag } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import FavoriButton from '@/components/FavoriButton';
 import ShareButton from '@/components/ShareButton';
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://medecinproche.app';
+
+// Ordre et libellés des jours pour le JSONB horaires { "lun": "08h00–12h00", ... }
+const JOURS: [string, string][] = [
+  ['lun', 'Lundi'], ['mar', 'Mardi'], ['mer', 'Mercredi'], ['jeu', 'Jeudi'],
+  ['ven', 'Vendredi'], ['sam', 'Samedi'], ['dim', 'Dimanche'],
+];
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -156,12 +162,19 @@ export default async function MedecinPage({ params }: Props) {
             <div className="w-8 h-8 bg-primary-50 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
               <Clock size={15} className="text-primary-600" />
             </div>
-            {medecin.horaires ? (
-              <pre className="text-sm text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">
-                {typeof medecin.horaires === 'string'
-                  ? medecin.horaires
-                  : JSON.stringify(medecin.horaires, null, 2)}
-              </pre>
+            {medecin.horaires && typeof medecin.horaires === 'object' ? (
+              <div className="flex-1 space-y-1">
+                {JOURS.map(([key, label]) => (
+                  <div key={key} className="flex items-baseline justify-between gap-3">
+                    <span className={`text-sm ${medecin.horaires?.[key] ? 'text-gray-700 font-medium' : 'text-gray-300'}`}>
+                      {label}
+                    </span>
+                    <span className={`text-sm text-right ${medecin.horaires?.[key] ? 'text-gray-800 font-semibold' : 'text-gray-300'}`}>
+                      {medecin.horaires?.[key] ?? 'Fermé'}
+                    </span>
+                  </div>
+                ))}
+              </div>
             ) : (
               <p className="text-sm text-gray-400 italic">Horaires non renseignés — contactez le cabinet</p>
             )}
@@ -180,6 +193,15 @@ export default async function MedecinPage({ params }: Props) {
             </div>
           </div>
         </div>
+
+        {/* Signaler une erreur — un faux numéro détruit la confiance */}
+        <a
+          href={`mailto:davedorelus025@gmail.com?subject=${encodeURIComponent(`[Médecin Proche] Erreur fiche — Dr ${displayNom} (${medecin.ville})`)}&body=${encodeURIComponent(`Fiche : ${BASE_URL}/medecin/${medecin.id}\nPraticien : Dr ${medecin.prenom ?? ''} ${displayNom} — ${medecin.specialite}\n\nQuelle information est incorrecte ? (téléphone, adresse, horaires, autre)\n\n`)}`}
+          className="flex items-center justify-center gap-2 w-full py-3 text-xs font-semibold text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <Flag size={13} aria-hidden="true" />
+          Signaler une erreur sur cette fiche
+        </a>
 
       </div>
 

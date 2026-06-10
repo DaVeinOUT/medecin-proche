@@ -33,22 +33,27 @@ export interface SearchParams {
   accepteNouveauxPatients?: boolean;
 }
 
+// Libellés alignés sur l'Annuaire Santé CNAM (libelle_profession) —
+// le filtre utilise ilike '%…%', les valeurs doivent être des sous-chaînes réelles.
 export const SPECIALITES = [
-  'Médecine générale',
-  'Pédiatrie',
-  'Cardiologie',
-  'Gynécologie-Obstétrique',
-  'Dermatologie',
-  'Ophtalmologie',
+  'Médecin généraliste',
+  'Pédiatre',
+  'Chirurgien-dentiste',
+  'Sage-femme',
+  'Infirmier',
+  'Masseur-kinésithérapeute',
+  'Orthophoniste',
+  'Cardiologue',
+  'Dermatologue',
+  'Gynécologue',
+  'Ophtalmologiste',
   'ORL',
-  'Psychiatrie',
-  'Rhumatologie',
-  'Neurologie',
-  'Endocrinologie',
-  'Chirurgie générale',
-  'Orthopédie',
-  'Radiologie',
-  'Anesthésie-Réanimation',
+  'Psychiatre',
+  'Radiologue',
+  'Rhumatologue',
+  'Gastro-entérologue',
+  'Pédicure-podologue',
+  'Orthoptiste',
 ] as const;
 
 export const DEPARTEMENTS_DOM = {
@@ -57,4 +62,6 @@ export const DEPARTEMENTS_DOM = {
   '973': 'Guyane',
   '974': 'La Réunion',
   '976': 'Mayotte',
+  '977': 'Saint-Barthélemy',
+  '978': 'Saint-Martin',
 } as const;

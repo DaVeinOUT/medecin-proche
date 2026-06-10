@@ -2,12 +2,14 @@
  * Import des professionnels de santé DOM-TOM
  *
  * Source  : Annuaire Santé CNAM via Opendatasoft
- * Dataset : medecins (géolocalisé, avec convention, spécialité, téléphone)
- * Fichier : data/medecins_domtom.csv  (généré par npm run download-data)
+ * Dataset : annuaire-des-professionnels-de-sante (toutes professions,
+ *           téléphone, convention, horaires — une ligne CSV par créneau)
+ * Fichier : data/professionnels_domtom.csv  (généré par npm run download-data)
  *
  * Usage :
  *   npm run import
- *   npm run import -- ./data/mon-fichier.csv
+ *   npm run import -- --reset            # vide la table avant import
+ *   npm run import -- ./data/fichier.csv
  */
 
 import { createClient } from '@supabase/supabase-js';
@@ -30,28 +32,37 @@ const supabase = createClient(
   { auth: { autoRefreshToken: false, persistSession: false } }
 );
 
-const TERRITOIRES: Record<string, string> = {
-  '971': 'Guadeloupe',
-  '972': 'Martinique',
-  '973': 'Guyane',
-  '974': 'La Réunion',
-  '976': 'Mayotte',
-  '977': 'Saint-Barthélemy',
-  '978': 'Saint-Martin',
+const DEPARTEMENTS: Record<string, string> = {
+  'Guadeloupe':       '971',
+  'Martinique':       '972',
+  'Guyane':           '973',
+  'La Réunion':       '974',
+  'Mayotte':          '976',
+  'Saint-Barthélemy': '977',
+  'Saint-Martin':     '978',
 };
+
+const JOURS: Record<number, string> = {
+  1: 'lun', 2: 'mar', 3: 'mer', 4: 'jeu', 5: 'ven', 6: 'sam', 7: 'dim',
+};
+const JOURS_ORDRE = ['lun', 'mar', 'mer', 'jeu', 'ven', 'sam', 'dim'];
 
 // Colonnes du CSV Opendatasoft (export filtré DOM-TOM)
 interface CsvRow {
-  'nom': string;              // Nom complet "JEAN MARTIN" (prénom + nom)
-  'civilite': string;         // "Homme" | "Femme"
-  'column_10': string;        // Numéro de téléphone "06.32.02.74.42"
-  'column_14': string;        // Secteur "Secteur 1 ou conventionné" | "Secteur 2" | ...
-  'libelle_profession': string; // Spécialité "Médecin généraliste"
-  'coordonnees': string;      // "lat, lon" ex: "14.777358, -61.030342"
-  'commune': string;          // Ville
-  'dep_code': string;         // "971" | "972" | "973" | "974" | "976"
-  'dep_name': string;         // "Martinique" | "Guadeloupe" | ...
-  'concat': string;           // Clé de déduplication (nom + adresse)
+  'nom': string;                // Nom complet "JEAN MARTIN" (prénom + nom)
+  'civilite': string;           // "Homme" | "Femme"
+  'libelle_profession': string; // "Médecin généraliste", "Chirurgien-dentiste"...
+  'adresse3': string;           // Voie ex: "9 ALLEE DE LA LOUISIANE"
+  'adresse4': string;           // Complément ex: "TERREVILLE"
+  'code_postal': string;        // "97200"
+  'telephone': string;          // "05.96.71.57.54"
+  'convention': string;         // "Secteur 1 ou conventionné" | "Secteur 2..." | ...
+  'coordonnees': string;        // "lat, lon"
+  'adresse': string;            // Adresse complète "... 97200 FORT DE FRANCE"
+  'dep_name': string;           // "Martinique" | "Saint-Martin" | ...
+  'jour': string;               // 1 (lundi) … 7 (dimanche), peut être vide
+  'heure_debut': string;        // "0001-01-01T08:00:00+00:00"
+  'heure_fin': string;          // "0001-01-01T12:00:00+00:00"
 }
 
 interface MedecinInsert {
@@ -65,13 +76,18 @@ interface MedecinInsert {
   territoire: string;
   telephone: string | null;
   secteur: number;
+  horaires: Record<string, string> | null;
   langues: string[];
   accepte_nouveaux_patients: boolean;
   localisation: string;
 }
 
-// Déduplication par concat (nom + adresse regroupés)
-const seen = new Set<string>();
+// Un professionnel = N lignes CSV (une par créneau horaire) → agrégation
+interface Aggregat {
+  insert: Omit<MedecinInsert, 'horaires'>;
+  // jour ('lun'…) → heure début → heure fin (créneau le plus long conservé)
+  creneaux: Map<string, Map<string, string>>;
+}
 
 function parseSecteur(raw: string): number {
   if (!raw) return 1;
@@ -81,9 +97,9 @@ function parseSecteur(raw: string): number {
   return 1; // Secteur 1 ou conventionné par défaut
 }
 
-function parseAcceptePatients(secteurRaw: string): boolean {
+function parseAcceptePatients(conventionRaw: string): boolean {
   // Non conventionné = hors circuit SS → false
-  const s = (secteurRaw ?? '').toLowerCase();
+  const s = (conventionRaw ?? '').toLowerCase();
   return !s.includes('non conventionné') && !s.includes('non-conventionné');
 }
 
@@ -108,10 +124,7 @@ function parseName(fullName: string): { prenom: string; nom: string } {
   return { prenom, nom };
 }
 
-/**
- * Parse "lat, lon" → { lat, lng }
- * Ex: "14.777358, -61.030342" → { lat: 14.777358, lng: -61.030342 }
- */
+/** Parse "lat, lon" → { lat, lng } */
 function parseCoords(raw: string): { lat: number; lng: number } | null {
   if (!raw) return null;
   const parts = raw.split(',').map(s => s.trim());
@@ -123,10 +136,37 @@ function parseCoords(raw: string): { lat: number; lng: number } | null {
   return { lat, lng };
 }
 
+/** "0001-01-01T08:00:00+00:00" → "08h00" */
+function parseHeure(raw: string): string | null {
+  const m = raw?.match(/T(\d{2}):(\d{2})/);
+  return m ? `${m[1]}h${m[2]}` : null;
+}
+
+/** Extrait la ville depuis l'adresse complète "… 97200 FORT DE FRANCE" */
+function parseVille(adresseComplete: string): string {
+  const m = adresseComplete?.match(/\b97\d{3}\s+(.+)$/);
+  return m ? m[1].trim() : '';
+}
+
+/** Construit le JSONB horaires : { "lun": "08h00–12h00 · 14h00–17h00", ... } */
+function buildHoraires(creneaux: Map<string, Map<string, string>>): Record<string, string> | null {
+  if (creneaux.size === 0) return null;
+  const horaires: Record<string, string> = {};
+  for (const jour of JOURS_ORDRE) {
+    const slots = creneaux.get(jour);
+    if (!slots || slots.size === 0) continue;
+    horaires[jour] = [...slots.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([debut, fin]) => `${debut}–${fin}`)
+      .join(' · ');
+  }
+  return Object.keys(horaires).length > 0 ? horaires : null;
+}
+
 async function insertBatch(batch: MedecinInsert[]): Promise<number> {
   const { error } = await supabase
     .from('medecins')
-    .upsert(batch, { onConflict: 'nom,adresse,specialite', ignoreDuplicates: true });
+    .upsert(batch, { onConflict: 'nom,adresse,specialite', ignoreDuplicates: false });
 
   if (error) {
     console.error(`\n❌ Erreur batch:`, error.message);
@@ -136,14 +176,12 @@ async function insertBatch(batch: MedecinInsert[]): Promise<number> {
 }
 
 async function importCsv(filePath: string): Promise<void> {
-  const batch: MedecinInsert[] = [];
+  const aggregats = new Map<string, Aggregat>();
   let totalLignes = 0;
   let sansCoordsIgnores = 0;
-  let duplicatasIgnores = 0;
-  let inseres = 0;
 
   console.log(`\n📂 Lecture : ${filePath}`);
-  console.log('   Traitement et déduplification en cours...\n');
+  console.log('   Agrégation des créneaux horaires par professionnel...\n');
 
   const parser = createReadStream(filePath).pipe(
     parse({
@@ -167,59 +205,83 @@ async function importCsv(filePath: string): Promise<void> {
     }
 
     const nomComplet = row['nom']?.trim();
-    if (!nomComplet) continue;
+    const profession = row['libelle_profession']?.trim();
+    if (!nomComplet || !profession) continue;
 
-    // Déduplication : même professionnel, même localisation
-    const dedupeKey = row['concat']?.trim() ?? `${nomComplet}|${row['commune']}|${row['libelle_profession']}`;
-    if (seen.has(dedupeKey)) {
-      duplicatasIgnores++;
-      continue;
+    const adresseComplete = row['adresse']?.trim() ?? '';
+    const key = `${nomComplet}|${adresseComplete}|${profession}`;
+
+    let agg = aggregats.get(key);
+    if (!agg) {
+      const territoire = row['dep_name']?.trim() ?? '';
+      const conventionRaw = row['convention']?.trim() ?? '';
+      const { prenom, nom } = parseName(nomComplet);
+      const adresse = [row['adresse3']?.trim(), row['adresse4']?.trim()]
+        .filter(Boolean).join(', ') || adresseComplete || '-';
+
+      agg = {
+        insert: {
+          nom,
+          prenom,
+          specialite: profession,
+          adresse,
+          ville: parseVille(adresseComplete),
+          code_postal: row['code_postal']?.trim() || null,
+          departement: DEPARTEMENTS[territoire] ?? '',
+          territoire,
+          telephone: formatTelephone(row['telephone']),
+          secteur: parseSecteur(conventionRaw),
+          langues: ['Français'],
+          accepte_nouveaux_patients: parseAcceptePatients(conventionRaw),
+          localisation: `POINT(${coords.lng} ${coords.lat})`,
+        },
+        creneaux: new Map(),
+      };
+      aggregats.set(key, agg);
     }
-    seen.add(dedupeKey);
 
-    const dept = row['dep_code']?.trim();
-    const territoire = row['dep_name']?.trim() || TERRITOIRES[dept] || dept;
-    const secteurRaw = row['column_14']?.trim() ?? '';
-    const { prenom, nom } = parseName(nomComplet);
+    // Téléphone : première valeur valide rencontrée
+    if (!agg.insert.telephone) {
+      agg.insert.telephone = formatTelephone(row['telephone']);
+    }
 
-    // L'adresse est dans concat = nom + adresse collés : on extrait l'adresse
-    const concatRaw = row['concat']?.trim() ?? '';
-    const adresse = concatRaw.startsWith(nomComplet)
-      ? concatRaw.slice(nomComplet.length).trim() || row['commune']?.trim() || '-'
-      : row['commune']?.trim() || '-';
+    // Créneau horaire de cette ligne
+    const jour = JOURS[Number(row['jour'])];
+    const debut = parseHeure(row['heure_debut']);
+    const fin = parseHeure(row['heure_fin']);
+    if (jour && debut && fin) {
+      let slots = agg.creneaux.get(jour);
+      if (!slots) { slots = new Map(); agg.creneaux.set(jour, slots); }
+      // Même heure de début vue deux fois (ex: cabinet + consultation) → fin la plus tardive
+      const finExistante = slots.get(debut);
+      if (!finExistante || fin > finExistante) slots.set(debut, fin);
+    }
 
-    batch.push({
-      nom,
-      prenom,
-      specialite: row['libelle_profession']?.trim() || 'Autre',
-      adresse,
-      ville: row['commune']?.trim() || '',
-      code_postal: null,
-      departement: dept,
-      territoire,
-      telephone: formatTelephone(row['column_10']),
-      secteur: parseSecteur(secteurRaw),
-      langues: ['Français'],
-      accepte_nouveaux_patients: parseAcceptePatients(secteurRaw),
-      localisation: `POINT(${coords.lng} ${coords.lat})`,
-    });
+    if (totalLignes % 5000 === 0) {
+      process.stdout.write(`   ${totalLignes.toLocaleString()} lignes lues, ${aggregats.size.toLocaleString()} professionnels uniques...\r`);
+    }
+  }
 
+  console.log(`\n   ${totalLignes.toLocaleString()} lignes lues → ${aggregats.size.toLocaleString()} professionnels uniques`);
+  console.log('   Insertion en base...\n');
+
+  let inseres = 0;
+  let batch: MedecinInsert[] = [];
+  for (const agg of aggregats.values()) {
+    batch.push({ ...agg.insert, horaires: buildHoraires(agg.creneaux) });
     if (batch.length >= 200) {
-      inseres += await insertBatch(batch.splice(0, 200));
-      process.stdout.write(`   ${inseres} médecins importés...\r`);
+      inseres += await insertBatch(batch);
+      batch = [];
+      process.stdout.write(`   ${inseres.toLocaleString()} professionnels importés...\r`);
     }
   }
-
-  if (batch.length > 0) {
-    inseres += await insertBatch(batch);
-  }
+  if (batch.length > 0) inseres += await insertBatch(batch);
 
   console.log('\n');
   console.log('✅ Import terminé !');
-  console.log(`   Lignes lues           : ${totalLignes.toLocaleString()}`);
-  console.log(`   Sans coordonnées GPS  : ${sansCoordsIgnores.toLocaleString()}`);
-  console.log(`   Doublons ignorés      : ${duplicatasIgnores.toLocaleString()}`);
-  console.log(`   Médecins uniques      : ${inseres.toLocaleString()}`);
+  console.log(`   Lignes lues             : ${totalLignes.toLocaleString()}`);
+  console.log(`   Sans coordonnées GPS    : ${sansCoordsIgnores.toLocaleString()}`);
+  console.log(`   Professionnels uniques  : ${inseres.toLocaleString()}`);
   console.log('');
 
   await printStats();
@@ -239,15 +301,30 @@ async function printStats(): Promise<void> {
     counts[row.territoire] = (counts[row.territoire] ?? 0) + 1;
   }
   for (const [t, c] of Object.entries(counts).sort()) {
-    console.log(`   ${t.padEnd(20)} : ${c.toLocaleString()} médecins`);
+    console.log(`   ${t.padEnd(20)} : ${c.toLocaleString()} professionnels`);
   }
 }
 
-async function main() {
-  console.log('🏥 Import Médecin Proche — Annuaire Santé DOM-TOM');
-  console.log('==================================================');
+async function resetTable(): Promise<void> {
+  console.log('🗑  Option --reset : vidage de la table medecins...');
+  const { error } = await supabase
+    .from('medecins')
+    .delete()
+    .gte('created_at', '1970-01-01');
+  if (error) {
+    console.error('❌ Échec du vidage :', error.message);
+    process.exit(1);
+  }
+  console.log('   Table vidée.\n');
+}
 
-  const filePath = process.argv[2] ?? './data/medecins_domtom.csv';
+async function main() {
+  console.log('🏥 Import Médecin Proche — Annuaire Santé DOM-TOM (toutes professions)');
+  console.log('======================================================================');
+
+  const args = process.argv.slice(2);
+  const reset = args.includes('--reset');
+  const filePath = args.find((a) => !a.startsWith('--')) ?? './data/professionnels_domtom.csv';
 
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
     console.error('❌ NEXT_PUBLIC_SUPABASE_URL manquante dans .env.local');
@@ -257,6 +334,7 @@ async function main() {
   console.log('🔑 Clé service_role détectée → RLS bypassé automatiquement.');
 
   try {
+    if (reset) await resetTable();
     await importCsv(filePath);
   } catch (err) {
     console.error('\n❌ Erreur fatale:', err);

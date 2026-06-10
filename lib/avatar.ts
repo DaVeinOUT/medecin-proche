@@ -16,6 +16,22 @@ const SPECIALITE_COLORS: Record<string, { bg: string; gradient: string }> = {
   'Orthopédie':                { bg: 'bg-yellow-100 text-yellow-800',   gradient: 'from-yellow-400 to-yellow-600' },
   'Radiologie':                { bg: 'bg-sky-100 text-sky-800',         gradient: 'from-sky-400 to-sky-600' },
   'Anesthésie-Réanimation':    { bg: 'bg-rose-100 text-rose-800',       gradient: 'from-rose-400 to-rose-600' },
+  // Libellés réels de l'Annuaire Santé CNAM (libelle_profession)
+  'Médecin généraliste':       { bg: 'bg-emerald-100 text-emerald-800', gradient: 'from-emerald-400 to-emerald-600' },
+  'Pédiatre':                  { bg: 'bg-cyan-100 text-cyan-800',       gradient: 'from-cyan-400 to-cyan-600' },
+  'Chirurgien-dentiste':       { bg: 'bg-sky-100 text-sky-800',         gradient: 'from-sky-400 to-sky-600' },
+  'Sage-femme':                { bg: 'bg-pink-100 text-pink-800',       gradient: 'from-pink-400 to-pink-600' },
+  'Infirmier':                 { bg: 'bg-teal-100 text-teal-800',       gradient: 'from-teal-400 to-teal-600' },
+  'Masseur-kinésithérapeute':  { bg: 'bg-lime-100 text-lime-800',       gradient: 'from-lime-400 to-lime-600' },
+  'Orthophoniste':             { bg: 'bg-fuchsia-100 text-fuchsia-800', gradient: 'from-fuchsia-400 to-fuchsia-600' },
+  'Cardiologue':               { bg: 'bg-red-100 text-red-800',         gradient: 'from-red-400 to-red-600' },
+  'Dermatologue et vénérologue': { bg: 'bg-orange-100 text-orange-800', gradient: 'from-orange-400 to-orange-600' },
+  'Gynécologue obstétricien':  { bg: 'bg-pink-100 text-pink-800',       gradient: 'from-pink-400 to-pink-600' },
+  'Gynécologue médical':       { bg: 'bg-pink-100 text-pink-800',       gradient: 'from-pink-400 to-pink-600' },
+  'Ophtalmologiste':           { bg: 'bg-blue-100 text-blue-800',       gradient: 'from-blue-400 to-blue-600' },
+  'Psychiatre':                { bg: 'bg-purple-100 text-purple-800',   gradient: 'from-purple-400 to-purple-600' },
+  'Radiologue':                { bg: 'bg-sky-100 text-sky-800',         gradient: 'from-sky-400 to-sky-600' },
+  'Rhumatologue':              { bg: 'bg-amber-100 text-amber-800',     gradient: 'from-amber-400 to-amber-600' },
 };
 
 // Fallback par lettre du nom (spécialités non listées ou données inconnues)
