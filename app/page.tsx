@@ -7,6 +7,8 @@ import TerritoireSelector from '@/components/TerritoireSelector';
 import MedecinList from '@/components/MedecinList';
 import Filters from '@/components/Filters';
 import BottomNav from '@/components/BottomNav';
+import LangSelector from '@/components/LangSelector';
+import { useLang } from '@/hooks/useLang';
 import { Medecin, FiltersState } from '@/types/medecin';
 import { getMedecinsProches, getMedecinsByTerritoire, searchMedecins } from '@/lib/supabase';
 import { LocateFixed, SlidersHorizontal, X, Stethoscope } from 'lucide-react';
@@ -24,6 +26,7 @@ const SHEET_TRANSLATE: Record<SheetState, string> = {
 };
 
 export default function HomePage() {
+  const { t } = useLang();
   const [userPosition, setUserPosition]       = useState<[number, number]>(POSITIONS_DOM.martinique);
   const [mapCenter, setMapCenter]             = useState<[number, number]>(POSITIONS_DOM.martinique);
   const [medecins, setMedecins]               = useState<Medecin[]>([]);
@@ -185,7 +188,7 @@ export default function HomePage() {
       {/* BANNIÈRE GÉOLOCALISATION REFUSÉE (fermable) — bleu informatif, non alarmant */}
       {showBanner && (
         <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between bg-sky-500 text-white text-xs font-semibold py-2 px-4">
-          <span>Localisation désactivée — sélectionnez un territoire ou effectuez une recherche</span>
+          <span>{t('geo.refusee')}</span>
           <button
             onClick={() => setGeolocBannerDismissed(true)}
             aria-label="Fermer la bannière"
@@ -210,6 +213,7 @@ export default function HomePage() {
           </div>
 
           <div className="flex items-center gap-2">
+            <LangSelector />
             <button
               onClick={handleGeolocate}
               aria-label="Me localiser"
@@ -231,7 +235,7 @@ export default function HomePage() {
         </div>
 
         <div className="px-4 pb-2">
-          <SearchBar onSearch={handleSearch} />
+          <SearchBar onSearch={handleSearch} placeholder={t('search.placeholder')} />
         </div>
 
         <div className="px-4 pb-3">
@@ -261,17 +265,17 @@ export default function HomePage() {
           <div className="flex items-center justify-between px-5 pt-3 pb-2">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-widest text-primary-600">
-                {searchMode === 'territoire' ? territoire : searchMode === 'text' ? 'Résultats' : 'À proximité'}
+                {searchMode === 'territoire' ? territoire : searchMode === 'text' ? t('sheet.resultats') : t('sheet.proximite')}
               </p>
               <p className="text-base font-bold text-gray-900 leading-tight">
-                {loading ? 'Recherche...' : `${medecins.length} médecin${medecins.length > 1 ? 's' : ''} trouvé${medecins.length > 1 ? 's' : ''}`}
+                {loading ? t('sheet.recherche') : `${medecins.length} ${t(medecins.length > 1 ? 'sheet.trouves' : 'sheet.trouve')}`}
               </p>
             </div>
             <button
               onClick={() => setSheetState(sheetState === 'full' ? 'peek' : 'full')}
               className="text-xs font-semibold text-primary-600 bg-primary-50 px-3 py-1.5 rounded-full transition hover:bg-primary-100"
             >
-              {sheetState === 'full' ? 'Réduire ↓' : 'Tout voir ↑'}
+              {sheetState === 'full' ? t('sheet.reduire') : t('sheet.toutVoir')}
             </button>
           </div>
         </div>

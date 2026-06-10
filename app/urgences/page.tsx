@@ -2,10 +2,12 @@
 
 import { useState } from 'react';
 import BottomNav from '@/components/BottomNav';
+import { useLang } from '@/hooks/useLang';
 import { NUMEROS_NATIONAUX, URGENCES_PAR_TERRITOIRE } from '@/lib/urgences';
 import { Phone, Siren, Pill, ExternalLink, Stethoscope } from 'lucide-react';
 
 export default function UrgencesPage() {
+  const { t } = useLang();
   const [territoire, setTerritoire] = useState('Martinique');
   const local = URGENCES_PAR_TERRITOIRE.find((t) => t.territoire === territoire);
 
@@ -20,11 +22,9 @@ export default function UrgencesPage() {
             <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
               <Siren size={20} className="text-white" aria-hidden="true" />
             </div>
-            <h1 className="text-2xl font-extrabold text-white">Urgences</h1>
+            <h1 className="text-2xl font-extrabold text-white">{t('nav.urgences')}</h1>
           </div>
-          <p className="text-white/80 text-sm">
-            Numéros vitaux et services de garde — disponibles même hors-ligne
-          </p>
+          <p className="text-white/80 text-sm">{t('urgences.sousTitre')}</p>
         </div>
       </div>
 
@@ -36,8 +36,8 @@ export default function UrgencesPage() {
           className="flex items-center justify-between bg-red-600 text-white rounded-2xl px-5 py-4 shadow-float tap-scale"
         >
           <div>
-            <p className="font-extrabold text-lg leading-tight">Urgence vitale ? Appelez le 15</p>
-            <p className="text-white/80 text-xs mt-0.5">SAMU — 24h/24, 7j/7</p>
+            <p className="font-extrabold text-lg leading-tight">{t('urgences.vital')}</p>
+            <p className="text-white/80 text-xs mt-0.5">{t('urgences.vitalSous')}</p>
           </div>
           <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center shrink-0">
             <Phone size={22} aria-hidden="true" />
@@ -47,7 +47,7 @@ export default function UrgencesPage() {
         {/* NUMÉROS NATIONAUX */}
         <div className="bg-white rounded-2xl shadow-card overflow-hidden">
           <p className="px-5 pt-4 pb-2 text-[11px] font-bold uppercase tracking-widest text-gray-400">
-            Numéros nationaux
+            {t('urgences.nationaux')}
           </p>
           <div className="divide-y divide-gray-50">
             {NUMEROS_NATIONAUX.map((n) => (

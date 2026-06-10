@@ -6,9 +6,10 @@ import { SPECIALITES } from '@/types/medecin';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
+  placeholder?: string;
 }
 
-export default function SearchBar({ onSearch }: SearchBarProps) {
+export default function SearchBar({ onSearch, placeholder = 'Médecin, spécialité ou ville...' }: SearchBarProps) {
   const [value, setValue]               = useState('');
   const [suggestions, setSuggestions]   = useState<string[]>([]);
   const [showSugg, setShowSugg]         = useState(false);
@@ -65,10 +66,11 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
             value={value}
             onChange={(e) => handleChange(e.target.value)}
             onFocus={() => suggestions.length > 0 && setShowSugg(true)}
-            placeholder="Médecin, spécialité ou ville..."
+            placeholder={placeholder}
             role="combobox"
             aria-label="Rechercher un médecin, une spécialité ou une ville"
             aria-autocomplete="list"
+            aria-controls="search-suggestions"
             aria-expanded={showSugg}
             className="w-full pl-11 pr-10 py-3.5 bg-white rounded-2xl shadow-float text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
           />
@@ -88,6 +90,7 @@ export default function SearchBar({ onSearch }: SearchBarProps) {
       {/* Dropdown suggestions */}
       {showSugg && (
         <div
+          id="search-suggestions"
           role="listbox"
           aria-label="Suggestions de spécialités"
           className="absolute top-full left-0 right-0 mt-1 bg-white rounded-2xl shadow-float z-50 overflow-hidden"

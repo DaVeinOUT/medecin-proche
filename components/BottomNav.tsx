@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { MapPin, List, Heart, Siren } from 'lucide-react';
+import { useLang } from '@/hooks/useLang';
 
 interface BottomNavProps {
   activePage?: 'map' | 'favoris' | 'urgences';
@@ -11,6 +12,7 @@ interface BottomNavProps {
 }
 
 export default function BottomNav({ activePage = 'map', listActive = false, onMapClick, onListClick }: BottomNavProps) {
+  const { t } = useLang();
   const isMap      = activePage === 'map';
   const isFavoris  = activePage === 'favoris';
   const isUrgences = activePage === 'urgences';
@@ -35,13 +37,13 @@ export default function BottomNav({ activePage = 'map', listActive = false, onMa
           >
             <MapPin size={22} className={mapActive ? 'text-primary-600' : 'text-gray-300'} />
             <span className={`text-[11px] ${mapActive ? 'font-bold text-primary-600' : 'font-medium text-gray-300'}`}>
-              Carte
+              {t('nav.carte')}
             </span>
           </button>
         ) : (
           <Link href="/" className="flex flex-col items-center gap-0.5 px-5 py-1.5 tap-scale" aria-label="Voir la carte">
             <MapPin size={22} className="text-gray-300" />
-            <span className="text-[11px] font-medium text-gray-300">Carte</span>
+            <span className="text-[11px] font-medium text-gray-300">{t('nav.carte')}</span>
           </Link>
         )}
 
@@ -56,13 +58,13 @@ export default function BottomNav({ activePage = 'map', listActive = false, onMa
           >
             <List size={22} className={listActive ? 'text-primary-600' : 'text-gray-400'} />
             <span className={`text-[11px] ${listActive ? 'font-bold text-primary-600' : 'font-medium text-gray-400'}`}>
-              Liste
+              {t('nav.liste')}
             </span>
           </button>
         ) : (
           <Link href="/" className="flex flex-col items-center gap-0.5 px-5 py-1.5 tap-scale" aria-label="Voir la liste">
             <List size={22} className="text-gray-300" />
-            <span className="text-[11px] font-medium text-gray-300">Liste</span>
+            <span className="text-[11px] font-medium text-gray-300">{t('nav.liste')}</span>
           </Link>
         )}
 
@@ -74,7 +76,7 @@ export default function BottomNav({ activePage = 'map', listActive = false, onMa
         >
           <Heart size={22} className={isFavoris ? 'text-primary-600 fill-primary-600' : 'text-gray-400'} aria-hidden="true" />
           <span className={`text-[11px] ${isFavoris ? 'font-bold text-primary-600' : 'font-medium text-gray-400'}`}>
-            Favoris
+            {t('nav.favoris')}
           </span>
         </Link>
 
@@ -86,7 +88,7 @@ export default function BottomNav({ activePage = 'map', listActive = false, onMa
         >
           <Siren size={22} className={isUrgences ? 'text-red-600' : 'text-gray-400'} aria-hidden="true" />
           <span className={`text-[11px] ${isUrgences ? 'font-bold text-red-600' : 'font-medium text-gray-400'}`}>
-            Urgences
+            {t('nav.urgences')}
           </span>
         </Link>
 
