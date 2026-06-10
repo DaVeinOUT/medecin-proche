@@ -1,18 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { MapPin, List, Heart } from 'lucide-react';
+import { MapPin, List, Heart, Siren } from 'lucide-react';
 
 interface BottomNavProps {
-  activePage?: 'map' | 'favoris';
+  activePage?: 'map' | 'favoris' | 'urgences';
   listActive?: boolean;   // true quand le bottom sheet est en état 'full'
   onMapClick?: () => void;
   onListClick?: () => void;
 }
 
 export default function BottomNav({ activePage = 'map', listActive = false, onMapClick, onListClick }: BottomNavProps) {
-  const isMap     = activePage === 'map';
-  const isFavoris = activePage === 'favoris';
+  const isMap      = activePage === 'map';
+  const isFavoris  = activePage === 'favoris';
+  const isUrgences = activePage === 'urgences';
   const mapActive = isMap && !listActive;
 
   return (
@@ -74,6 +75,18 @@ export default function BottomNav({ activePage = 'map', listActive = false, onMa
           <Heart size={22} className={isFavoris ? 'text-primary-600 fill-primary-600' : 'text-gray-400'} aria-hidden="true" />
           <span className={`text-[11px] ${isFavoris ? 'font-bold text-primary-600' : 'font-medium text-gray-400'}`}>
             Favoris
+          </span>
+        </Link>
+
+        {/* Urgences */}
+        <Link
+          href="/urgences"
+          aria-label="Numéros d'urgence et services de garde"
+          className={`flex flex-col items-center gap-0.5 px-5 py-1.5 rounded-2xl tap-scale ${isUrgences ? 'bg-red-50' : ''}`}
+        >
+          <Siren size={22} className={isUrgences ? 'text-red-600' : 'text-gray-400'} aria-hidden="true" />
+          <span className={`text-[11px] ${isUrgences ? 'font-bold text-red-600' : 'font-medium text-gray-400'}`}>
+            Urgences
           </span>
         </Link>
 
