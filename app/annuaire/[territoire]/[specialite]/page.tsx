@@ -1,0 +1,144 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import { createClient } from '@supabase/supabase-js';
+import { slugify } from '@/lib/slug';
+import { toTitleCase } from '@/lib/utils';
+import { avatarBg, getInitiales } from '@/lib/avatar';
+import { ChevronLeft, MapPin, Phone, CheckCircle } from 'lucide-react';
+
+// Pages d'annuaire SEO « Pédiatre en Martinique » — régénérées chaque jour (ISR)
+export const revalidate = 86400;
+export const dynamicParams = true;
+
+const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://medecinproche.app';
+
+type Props = { params: Promise<{ territoire: string; specialite: string }> };
+
+interface Pair { territoire: string; specialite: string; nb: number }
+
+function getClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key);
+}
+
+async function getPairs(): Promise<Pair[]> {
+  const client = getClient();
+  if (!client) return [];
+  const { data } = await client.from('annuaire_pairs').select('territoire,specialite,nb');
+  return (data as Pair[]) ?? [];
+}
+
+/** Résout les slugs d'URL vers les vraies valeurs en base */
+async function resolvePair(territoireSlug: string, specialiteSlug: string): Promise<Pair | null> {
+  const pairs = await getPairs();
+  return pairs.find(
+    (p) => slugify(p.territoire) === territoireSlug && slugify(p.specialite) === specialiteSlug
+  ) ?? null;
+}
+
+export async function generateStaticParams() {
+  const pairs = await getPairs();
+  return pairs.map((p) => ({
+    territoire: slugify(p.territoire),
+    specialite: slugify(p.specialite),
+  }));
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { territoire, specialite } = await params;
+  const pair = await resolvePair(territoire, specialite);
+  if (!pair) return { title: 'Annuaire | Médecin Proche' };
+
+  const title = `${pair.specialite} — ${pair.territoire} : ${pair.nb} praticien${pair.nb > 1 ? 's' : ''} | Médecin Proche`;
+  const description = `Trouvez un ${pair.specialite.toLowerCase()} en ${pair.territoire} : coordonnées, adresse, téléphone et horaires de ${pair.nb} praticien${pair.nb > 1 ? 's' : ''}. Annuaire santé gratuit des DOM-TOM.`;
+
+  return {
+    title,
+    description,
+    alternates: { canonical: `${BASE_URL}/annuaire/${territoire}/${specialite}` },
+    openGraph: { title, description, url: `${BASE_URL}/annuaire/${territoire}/${specialite}` },
+  };
+}
+
+export default async function AnnuairePage({ params }: Props) {
+  const { territoire, specialite } = await params;
+  const pair = await resolvePair(territoire, specialite);
+  if (!pair) notFound();
+
+  const client = getClient();
+  if (!client) notFound();
+
+  const { data } = await client
+    .from('medecins_vue')
+    .select('id,nom,prenom,specialite,adresse,ville,telephone,secteur,accepte_nouveaux_patients')
+    .eq('territoire', pair.territoire)
+    .eq('specialite', pair.specialite)
+    .order('ville')
+    .limit(500);
+
+  const medecins = data ?? [];
+
+  return (
+    <div className="min-h-screen bg-surface pb-16">
+
+      <div className="bg-gradient-to-br from-teal-500 to-teal-700 relative overflow-hidden">
+        <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-white/10 pointer-events-none" />
+        <div className="max-w-2xl mx-auto px-4 pt-14 pb-6 relative z-10">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1 text-white/90 text-sm font-semibold bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-xl mb-4 tap-scale"
+          >
+            <ChevronLeft size={15} />
+            Carte
+          </Link>
+          <h1 className="text-2xl font-extrabold text-white leading-tight">
+            {pair.specialite} — {pair.territoire}
+          </h1>
+          <p className="text-white/70 text-sm mt-0.5">
+            {pair.nb} praticien{pair.nb > 1 ? 's' : ''} référencé{pair.nb > 1 ? 's' : ''}
+          </p>
+        </div>
+      </div>
+
+      <div className="max-w-2xl mx-auto px-4 pt-4 space-y-2.5">
+        {medecins.map((m) => (
+          <Link
+            key={m.id}
+            href={`/medecin/${m.id}`}
+            className="flex items-center gap-3.5 bg-white rounded-2xl shadow-card px-4 py-3.5 tap-scale"
+          >
+            <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 text-sm font-extrabold ${avatarBg(m.nom, m.specialite)}`}>
+              {getInitiales(m.prenom, m.nom)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-gray-900 truncate">
+                Dr {m.prenom ? toTitleCase(m.prenom) : ''} {toTitleCase(m.nom)}
+              </p>
+              <p className="text-xs text-gray-500 truncate flex items-center gap-1 mt-0.5">
+                <MapPin size={11} className="shrink-0" aria-hidden="true" />
+                {toTitleCase(m.ville || m.adresse)}
+              </p>
+            </div>
+            <div className="flex flex-col items-end gap-1 shrink-0">
+              {m.accepte_nouveaux_patients && (
+                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                  <CheckCircle size={10} aria-hidden="true" />
+                  Disponible
+                </span>
+              )}
+              {m.telephone && <Phone size={14} className="text-primary-600" aria-hidden="true" />}
+            </div>
+          </Link>
+        ))}
+
+        <p className="text-[11px] text-gray-400 text-center px-6 pt-3 leading-relaxed">
+          Données issues de l&apos;Annuaire Santé (CNAM) — non actualisées en temps réel.
+          Vérifiez par téléphone avant de vous déplacer.
+        </p>
+      </div>
+    </div>
+  );
+}

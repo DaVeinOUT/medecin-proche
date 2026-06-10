@@ -173,6 +173,15 @@ FROM medecins;
 -- La vue respecte le RLS de l'appelant (et non du propriétaire)
 ALTER VIEW medecins_vue SET (security_invoker = true);
 
+-- Couples territoire × spécialité avec effectif — alimente les pages
+-- d'annuaire SEO (generateStaticParams) sans rapatrier toute la table.
+CREATE OR REPLACE VIEW annuaire_pairs AS
+SELECT territoire, specialite, count(*)::int AS nb
+FROM medecins
+GROUP BY territoire, specialite;
+
+ALTER VIEW annuaire_pairs SET (security_invoker = true);
+
 -- ============================================================
 -- 8. Données de test (DOM-TOM)
 -- ============================================================
