@@ -1,0 +1,35 @@
+# Rafraîchissement mensuel des données Annuaire Santé CNAM
+#
+# Secrets à configurer dans GitHub → Settings → Secrets and variables → Actions :
+#   - NEXT_PUBLIC_SUPABASE_URL    : URL du projet Supabase
+#   - SUPABASE_SERVICE_ROLE_KEY   : clé service_role (écrit en bypassant le RLS)
+name: Rafraîchissement des données
+
+on:
+  schedule:
+    - cron: '0 4 1 * *'   # le 1er de chaque mois à 04h00 UTC
+  workflow_dispatch: {}    # déclenchement manuel possible
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installer les dépendances
+        run: npm ci
+
+      - name: Télécharger l'Annuaire Santé DOM-TOM
+        run: npm run download-data
+
+      - name: Importer dans Supabase
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npm run import
