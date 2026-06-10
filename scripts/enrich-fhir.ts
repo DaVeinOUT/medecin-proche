@@ -10,8 +10,8 @@
  * puis renseigner ESANTE_API_KEY dans .env.local
  *
  * Usage :
- *   npx ts-node --project tsconfig.json scripts/enrich-fhir.ts            # test sur 10 fiches
- *   npx ts-node --project tsconfig.json scripts/enrich-fhir.ts --limit=500
+ *   node scripts/enrich-fhir.ts              # test sur 10 fiches
+ *   node scripts/enrich-fhir.ts --limit=500
  */
 
 import { createClient } from '@supabase/supabase-js';
