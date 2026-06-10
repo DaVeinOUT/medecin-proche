@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { getMedecinById } from '@/lib/supabase';
 import { avatarGradient, getInitiales } from '@/lib/avatar';
 import { toTitleCase } from '@/lib/utils';
-import { Phone, PhoneOff, MapPin, Clock, Globe, Users, ChevronLeft, CheckCircle, XCircle, CalendarX } from 'lucide-react';
+import { Phone, PhoneOff, MapPin, Clock, Globe, Users, ChevronLeft, CheckCircle, XCircle, CalendarX, Navigation } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import FavoriButton from '@/components/FavoriButton';
@@ -188,20 +188,32 @@ export default async function MedecinPage({ params }: Props) {
         className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-gray-100 px-4 py-3"
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 8px) + 12px)' }}
       >
-        {medecin.telephone ? (
+        <div className="flex items-stretch gap-2.5">
+          {medecin.telephone ? (
+            <a
+              href={`tel:${medecin.telephone}`}
+              className={`btn-appeler flex items-center justify-center gap-2.5 flex-1 bg-gradient-to-r ${gradient} text-white py-3.5 rounded-2xl font-bold text-base tap-scale`}
+            >
+              <Phone size={19} />
+              Appeler — {medecin.telephone}
+            </a>
+          ) : (
+            <div className="flex items-center justify-center gap-2.5 flex-1 bg-gray-100 text-gray-400 py-3.5 rounded-2xl font-semibold text-sm">
+              <PhoneOff size={17} />
+              Numéro non disponible
+            </div>
+          )}
           <a
-            href={`tel:${medecin.telephone}`}
-            className={`btn-appeler flex items-center justify-center gap-2.5 w-full bg-gradient-to-r ${gradient} text-white py-3.5 rounded-2xl font-bold text-base tap-scale`}
+            href={`https://www.google.com/maps/dir/?api=1&destination=${medecin.lat},${medecin.lng}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Itinéraire vers le cabinet"
+            className="flex flex-col items-center justify-center gap-0.5 px-4 bg-white border-2 border-primary-600 text-primary-600 rounded-2xl font-bold text-xs tap-scale shrink-0"
           >
-            <Phone size={19} />
-            Appeler — {medecin.telephone}
+            <Navigation size={18} />
+            Y aller
           </a>
-        ) : (
-          <div className="flex items-center justify-center gap-2.5 w-full bg-gray-100 text-gray-400 py-3.5 rounded-2xl font-semibold text-sm">
-            <PhoneOff size={17} />
-            Numéro de téléphone non disponible
-          </div>
-        )}
+        </div>
       </div>
 
       <div className="h-28" />
