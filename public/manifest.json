@@ -1,7 +1,7 @@
 {
   "name": "Médecin Proche",
   "short_name": "Médecin Proche",
-  "description": "Trouvez un médecin près de chez vous en Guyane et aux Antilles",
+  "description": "Trouvez un médecin près de chez vous en Martinique, Guadeloupe, Guyane, à La Réunion et à Mayotte",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

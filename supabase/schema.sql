@@ -4,8 +4,10 @@
 -- ============================================================
 
 -- 1. Activer PostGIS (extension géographique)
-CREATE EXTENSION IF NOT EXISTS postgis;
-CREATE EXTENSION IF NOT EXISTS postgis_topology;
+--    Dans le schéma extensions : public est exposé par l'API REST/GraphQL,
+--    et spatial_ref_sys (table système sans RLS) ne doit pas y être accessible.
+CREATE SCHEMA IF NOT EXISTS extensions;
+CREATE EXTENSION IF NOT EXISTS postgis SCHEMA extensions;
 
 -- ============================================================
 -- 2. Table principale des médecins
@@ -26,7 +28,7 @@ CREATE TABLE IF NOT EXISTS medecins (
   langues                   TEXT[],      -- ['Français', 'Créole martiniquais']
   accepte_nouveaux_patients BOOLEAN DEFAULT true,
   rpps                      VARCHAR(20),
-  localisation              GEOGRAPHY(POINT, 4326) NOT NULL,
+  localisation              extensions.geography(POINT, 4326) NOT NULL,
   source                    VARCHAR(50) DEFAULT 'data.gouv.fr',
   created_at                TIMESTAMPTZ DEFAULT now(),
   updated_at                TIMESTAMPTZ DEFAULT now(),
@@ -107,7 +109,7 @@ RETURNS TABLE (
   distance                  FLOAT  -- en mètres
 )
 LANGUAGE sql STABLE
-SET search_path = public
+SET search_path = public, extensions
 AS $$
   SELECT
     m.id,
@@ -163,16 +165,13 @@ SELECT
   id, nom, prenom, specialite, adresse, ville,
   code_postal, departement, territoire, telephone,
   secteur, horaires, langues, accepte_nouveaux_patients,
-  ST_Y(localisation::geometry) AS lat,
-  ST_X(localisation::geometry) AS lng,
+  extensions.ST_Y(localisation::extensions.geometry) AS lat,
+  extensions.ST_X(localisation::extensions.geometry) AS lng,
   created_at, updated_at
 FROM medecins;
 
 -- La vue respecte le RLS de l'appelant (et non du propriétaire)
 ALTER VIEW medecins_vue SET (security_invoker = true);
-
--- Table système PostGIS : retirer l'accès API (RLS impossible, table supabase_admin)
-REVOKE SELECT ON TABLE public.spatial_ref_sys FROM anon, authenticated;
 
 -- ============================================================
 -- 8. Données de test (DOM-TOM)

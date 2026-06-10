@@ -82,7 +82,8 @@ export default function HomePage() {
         if (results.length > 0) setMapCenter([results[0].lat, results[0].lng]);
       }
     } catch (e) {
-      setFetchError(e instanceof Error ? e.message : 'Erreur réseau');
+      console.error('Erreur de récupération des médecins :', e);
+      setFetchError('Vérifiez votre connexion et réessayez.');
     }
 
     setMedecins(results);

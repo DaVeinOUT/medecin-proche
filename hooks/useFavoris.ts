@@ -14,9 +14,21 @@ export function useFavoris() {
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) setFavoris(JSON.parse(stored));
+      if (!stored) return;
+      // Validation défensive : un localStorage trafiqué ne doit pas casser l'affichage
+      const parsed: unknown = JSON.parse(stored);
+      if (!Array.isArray(parsed)) return;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydratation depuis localStorage après montage (un init lazy provoquerait un mismatch SSR)
+      setFavoris(
+        parsed.filter(
+          (m): m is FavoriData =>
+            typeof m === 'object' && m !== null &&
+            typeof (m as FavoriData).id === 'string' &&
+            typeof (m as FavoriData).nom === 'string'
+        )
+      );
     } catch {
-      // localStorage indisponible (SSR, mode privé bloqué)
+      // localStorage indisponible (SSR, mode privé bloqué) ou JSON invalide
     }
   }, []);
 
