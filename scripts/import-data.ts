@@ -36,6 +36,8 @@ const TERRITOIRES: Record<string, string> = {
   '973': 'Guyane',
   '974': 'La Réunion',
   '976': 'Mayotte',
+  '977': 'Saint-Barthélemy',
+  '978': 'Saint-Martin',
 };
 
 // Colonnes du CSV Opendatasoft (export filtré DOM-TOM)
@@ -228,7 +230,7 @@ async function printStats(): Promise<void> {
   const { data } = await supabase
     .from('medecins')
     .select('territoire')
-    .in('departement', ['971', '972', '973', '974', '976']);
+    .in('departement', ['971', '972', '973', '974', '976', '977', '978']);
 
   if (!data) return;
 

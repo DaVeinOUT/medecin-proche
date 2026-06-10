@@ -27,4 +27,6 @@ export const POSITIONS_DOM = {
   guyane: [4.9372, -52.3261] as [number, number],
   reunion: [-21.1151, 55.5364] as [number, number],
   mayotte: [-12.8275, 45.1662] as [number, number],
+  saintMartin: [18.0708, -63.0501] as [number, number],
+  saintBarthelemy: [17.9, -62.8333] as [number, number],
 };

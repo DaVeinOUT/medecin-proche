@@ -11,11 +11,11 @@ set -e
 
 mkdir -p data
 
-EXPORT_URL="https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/medecins/exports/csv?where=dep_code%20IN%20('971'%2C'972'%2C'973'%2C'974'%2C'976')&select=nom%2Ccivilite%2Ccolumn_10%2Ccolumn_14%2Clibelle_profession%2Ccoordonnees%2Ccommune%2Cdep_code%2Cdep_name%2Cconcat&delimiter=%3B&lang=fr"
+EXPORT_URL="https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/medecins/exports/csv?where=dep_code%20IN%20('971'%2C'972'%2C'973'%2C'974'%2C'976'%2C'977'%2C'978')&select=nom%2Ccivilite%2Ccolumn_10%2Ccolumn_14%2Clibelle_profession%2Ccoordonnees%2Ccommune%2Cdep_code%2Cdep_name%2Cconcat&delimiter=%3B&lang=fr"
 
 echo "📥 Téléchargement Annuaire Santé DOM-TOM (CNAM)..."
 echo "   Source  : Opendatasoft / CNAM — données géolocalisées"
-echo "   Filtres : Martinique · Guadeloupe · Guyane · Réunion · Mayotte"
+echo "   Filtres : Martinique · Guadeloupe · Guyane · Réunion · Mayotte · Saint-Barthélemy · Saint-Martin"
 echo "   Champs  : Nom, Spécialité, GPS, Convention, Téléphone, Ville"
 echo ""
 

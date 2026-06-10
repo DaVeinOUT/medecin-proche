@@ -13,6 +13,8 @@ const TERRITOIRES = [
   { label: 'Guyane',     flag: '🇬🇫', key: 'guyane',     position: POSITIONS_DOM.guyane     },
   { label: 'Réunion',    flag: '🇷🇪', key: 'reunion',    position: POSITIONS_DOM.reunion    },
   { label: 'Mayotte',    flag: '🇾🇹', key: 'mayotte',    position: POSITIONS_DOM.mayotte    },
+  { label: 'Saint-Martin',     flag: '🇲🇫', key: 'saintMartin',     position: POSITIONS_DOM.saintMartin     },
+  { label: 'Saint-Barthélemy', flag: '🇧🇱', key: 'saintBarthelemy', position: POSITIONS_DOM.saintBarthelemy },
 ];
 
 export default function TerritoireSelector({ onSelect, territoire }: TerritoireSelectorProps) {
