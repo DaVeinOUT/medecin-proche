@@ -34,6 +34,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# service worker généré par @serwist/next au build
+/public/sw.js
+/public/sw.js.map
+/public/swe-worker*.js
+
 # claude code
 .claude/
 

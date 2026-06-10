@@ -4,13 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "import": "npx ts-node --project tsconfig.json scripts/import-data.ts",
     "download-data": "bash scripts/download-data.sh"
   },
   "dependencies": {
+    "@serwist/next": "^9.5.11",
     "@supabase/supabase-js": "^2.47.10",
     "@vercel/analytics": "^1.6.1",
     "leaflet": "^1.9.4",
@@ -19,7 +20,8 @@
     "next": "^16.2.8",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-leaflet": "^4.2.1"
+    "react-leaflet": "^4.2.1",
+    "serwist": "^9.5.11"
   },
   "devDependencies": {
     "@types/leaflet": "^1.9.14",
