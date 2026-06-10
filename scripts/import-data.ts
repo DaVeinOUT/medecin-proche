@@ -209,15 +209,19 @@ async function importCsv(filePath: string): Promise<void> {
     if (!nomComplet || !profession) continue;
 
     const adresseComplete = row['adresse']?.trim() ?? '';
-    const key = `${nomComplet}|${adresseComplete}|${profession}`;
+    const { prenom, nom } = parseName(nomComplet);
+    const adresse = [row['adresse3']?.trim(), row['adresse4']?.trim()]
+      .filter(Boolean).join(', ') || adresseComplete || '-';
+
+    // Clé alignée sur la contrainte UNIQUE (nom, adresse, specialite) de la table :
+    // toute collision doit être fusionnée ici, sinon Postgres rejette le batch
+    // (« ON CONFLICT DO UPDATE command cannot affect row a second time »)
+    const key = `${nom}|${adresse}|${profession}`;
 
     let agg = aggregats.get(key);
     if (!agg) {
       const territoire = row['dep_name']?.trim() ?? '';
       const conventionRaw = row['convention']?.trim() ?? '';
-      const { prenom, nom } = parseName(nomComplet);
-      const adresse = [row['adresse3']?.trim(), row['adresse4']?.trim()]
-        .filter(Boolean).join(', ') || adresseComplete || '-';
 
       agg = {
         insert: {
@@ -289,19 +293,18 @@ async function importCsv(filePath: string): Promise<void> {
 
 async function printStats(): Promise<void> {
   console.log('   Répartition par territoire :');
-  const { data } = await supabase
-    .from('medecins')
-    .select('territoire')
-    .in('departement', ['971', '972', '973', '974', '976', '977', '978']);
-
-  if (!data) return;
-
-  const counts: Record<string, number> = {};
-  for (const row of data) {
-    counts[row.territoire] = (counts[row.territoire] ?? 0) + 1;
-  }
-  for (const [t, c] of Object.entries(counts).sort()) {
-    console.log(`   ${t.padEnd(20)} : ${c.toLocaleString()} professionnels`);
+  // count: 'exact' + head — l'API REST plafonne les SELECT à 1 000 lignes,
+  // un comptage côté serveur est le seul chiffre fiable
+  const territoires = [
+    'Guadeloupe', 'Guyane', 'La Réunion', 'Martinique',
+    'Mayotte', 'Saint-Barthélemy', 'Saint-Martin',
+  ];
+  for (const t of territoires) {
+    const { count } = await supabase
+      .from('medecins')
+      .select('*', { count: 'exact', head: true })
+      .eq('territoire', t);
+    console.log(`   ${t.padEnd(20)} : ${(count ?? 0).toLocaleString()} professionnels`);
   }
 }
 
