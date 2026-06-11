@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { getMedecinById } from '@/lib/supabase';
 import { avatarGradient, avatarAurora, getInitiales } from '@/lib/avatar';
-import { toTitleCase, formatTel } from '@/lib/utils';
+import { toTitleCase, formatTel, nomAffiche } from '@/lib/utils';
 import { Phone, PhoneOff, MapPin, Clock, Globe, Users, ChevronLeft, CheckCircle, XCircle, CalendarX, Navigation, Flag } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const medecin = await getMedecinById(id);
   if (!medecin) return { title: 'Médecin introuvable | Médecin Proche' };
 
-  const nomComplet = `Dr ${medecin.prenom ?? ''} ${toTitleCase(medecin.nom)}`.trim();
+  const nomComplet = nomAffiche(medecin.prenom, medecin.nom, medecin.specialite);
   const title = `${nomComplet} — ${medecin.specialite} à ${medecin.ville} | Médecin Proche`;
   const description = `Consultez la fiche de ${nomComplet}, ${medecin.specialite} à ${medecin.ville} (${medecin.territoire}). Secteur ${medecin.secteur}.${medecin.accepte_nouveaux_patients ? ' Accepte de nouveaux patients.' : ' Complet actuellement.'}`;
 
@@ -51,7 +51,7 @@ export default async function MedecinPage({ params }: Props) {
   const initiales  = getInitiales(medecin.prenom, medecin.nom);
   const gradient   = avatarGradient(medecin.nom, medecin.specialite);
   const aurora     = avatarAurora(medecin.nom, medecin.specialite);
-  const displayNom = toTitleCase(medecin.nom);
+  const displayNom = nomAffiche(medecin.prenom, medecin.nom, medecin.specialite);
   const jourCourant = JOUR_CLES[new Date().getDay()];
 
   return (
@@ -75,7 +75,7 @@ export default async function MedecinPage({ params }: Props) {
             </Link>
             <div className="flex items-center gap-2">
               <ShareButton
-                title={`Dr ${medecin.prenom ?? ''} ${displayNom} — ${medecin.specialite}`}
+                title={`${displayNom} — ${medecin.specialite}`}
                 text={`${medecin.specialite} à ${medecin.ville} (${medecin.territoire})`}
                 url={`${BASE_URL}/medecin/${medecin.id}`}
               />
@@ -91,7 +91,7 @@ export default async function MedecinPage({ params }: Props) {
 
             <p className="label-mono text-lagoon-300 mb-2">{medecin.specialite}</p>
             <h1 className="font-display font-semibold text-3xl text-sand-50 leading-tight text-balance">
-              Dr {medecin.prenom ? toTitleCase(medecin.prenom) : ''} {displayNom}
+              {displayNom}
             </h1>
 
             <div className="mt-4 flex justify-center">
@@ -214,7 +214,7 @@ export default async function MedecinPage({ params }: Props) {
 
         {/* Signaler une erreur — un faux numéro détruit la confiance */}
         <a
-          href={`mailto:davedorelus025@gmail.com?subject=${encodeURIComponent(`[Médecin Proche] Erreur fiche — Dr ${displayNom} (${medecin.ville})`)}&body=${encodeURIComponent(`Fiche : ${BASE_URL}/medecin/${medecin.id}\nPraticien : Dr ${medecin.prenom ?? ''} ${displayNom} — ${medecin.specialite}\n\nQuelle information est incorrecte ? (téléphone, adresse, horaires, autre)\n\n`)}`}
+          href={`mailto:davedorelus025@gmail.com?subject=${encodeURIComponent(`[Médecin Proche] Erreur fiche — ${displayNom} (${medecin.ville})`)}&body=${encodeURIComponent(`Fiche : ${BASE_URL}/medecin/${medecin.id}\nPraticien : ${displayNom} — ${medecin.specialite}\n\nQuelle information est incorrecte ? (téléphone, adresse, horaires, autre)\n\n`)}`}
           className="flex items-center justify-center gap-2 w-full py-3 text-xs font-semibold text-mist-500 hover:text-ink-800 transition-colors"
         >
           <Flag size={13} aria-hidden="true" />

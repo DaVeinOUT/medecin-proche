@@ -32,6 +32,7 @@ export default function HomePage() {
   const [userPosition, setUserPosition]       = useState<[number, number]>(POSITIONS_DOM.martinique);
   const [mapCenter, setMapCenter]             = useState<[number, number]>(POSITIONS_DOM.martinique);
   const [medecins, setMedecins]               = useState<Medecin[]>([]);
+  const [totalMedecins, setTotalMedecins]     = useState(0);
   const [loading, setLoading]                 = useState(true);
   const [fetchError, setFetchError]           = useState<string | null>(null);
   const [geolocDenied, setGeolocDenied]       = useState(false);
@@ -59,7 +60,7 @@ export default function HomePage() {
   ) => {
     setLoading(true);
     setFetchError(null);
-    let results: Medecin[] = [];
+    let results = { medecins: [] as Medecin[], total: 0 };
 
     try {
       if (mode === 'proximity' && opts.position) {
@@ -84,14 +85,15 @@ export default function HomePage() {
           opts.filters.secteur,
           opts.filters.accepteNouveauxPatients || undefined,
         );
-        if (results.length > 0) setMapCenter([results[0].lat, results[0].lng]);
+        if (results.medecins.length > 0) setMapCenter([results.medecins[0].lat, results.medecins[0].lng]);
       }
     } catch (e) {
       console.error('Erreur de récupération des médecins :', e);
       setFetchError('Vérifiez votre connexion et réessayez.');
     }
 
-    setMedecins(results);
+    setMedecins(results.medecins);
+    setTotalMedecins(results.total);
     setLoading(false);
   }, []);
 
@@ -278,7 +280,9 @@ export default function HomePage() {
                 {searchMode === 'territoire' ? territoire : searchMode === 'text' ? t('sheet.resultats') : t('sheet.proximite')}
               </p>
               <p className="font-display font-semibold text-[26px] leading-9 text-ink-950 tnum truncate">
-                {loading ? t('sheet.recherche') : `${medecins.length} ${t(medecins.length > 1 ? 'sheet.trouves' : 'sheet.trouve')}`}
+                {loading
+                  ? t('sheet.recherche')
+                  : `${totalMedecins.toLocaleString('fr-FR')} ${t(totalMedecins > 1 ? 'sheet.trouves' : 'sheet.trouve')}`}
               </p>
             </div>
             <button
@@ -299,6 +303,7 @@ export default function HomePage() {
         >
           <MedecinList
             medecins={medecins}
+            total={totalMedecins}
             loading={loading}
             mode={searchMode}
             territoire={territoire}

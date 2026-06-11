@@ -7,7 +7,7 @@ import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { Medecin } from '@/types/medecin';
-import { formatTel } from '@/lib/utils';
+import { formatTel, nomAffiche } from '@/lib/utils';
 
 const MAX_MAP_MARKERS = 300;
 
@@ -64,9 +64,11 @@ export default function Map({ userPosition, mapCenter, medecins, selectedMedecin
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© <a href="https://www.openstreetmap.org/">OSM</a>',
-      maxZoom: 19,
+    // Tuiles CARTO Voyager servies via notre proxy (/app/tiles) — les CDN de
+    // tuiles directs sont throttlés ou cassés sur beaucoup de réseaux mobiles DOM-TOM
+    L.tileLayer('/tiles/{z}/{x}/{y}{r}.png', {
+      attribution: '© <a href="https://www.openstreetmap.org/">OSM</a> © <a href="https://carto.com/">CARTO</a>',
+      maxZoom: 20,
       updateWhenIdle: false,
       keepBuffer: 2,
     }).addTo(map);
@@ -116,8 +118,7 @@ export default function Map({ userPosition, mapCenter, medecins, selectedMedecin
     medecins.slice(0, MAX_MAP_MARKERS).forEach((m) => {
       if (!m.lat || !m.lng) return;
 
-      const prenom     = escapeHtml(m.prenom);
-      const nom        = escapeHtml(m.nom);
+      const displayNom = escapeHtml(nomAffiche(m.prenom, m.nom, m.specialite));
       const specialite = escapeHtml(m.specialite);
       const safeId     = encodeURIComponent(m.id);
 
@@ -134,16 +135,16 @@ export default function Map({ userPosition, mapCenter, medecins, selectedMedecin
 
       const markerIcon = L.divIcon({
         className: '',
-        html: `<div class="pin-medecin"><span>+</span></div><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap">Dr ${prenom} ${nom} — ${specialite}</span>`,
+        html: `<div class="pin-medecin"><span>+</span></div><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap">${displayNom} — ${specialite}</span>`,
         iconSize: [30, 30],
         iconAnchor: [15, 30],
         popupAnchor: [0, -32],
       });
 
-      const marker = L.marker([m.lat, m.lng], { icon: markerIcon, title: `Dr ${prenom} ${nom} — ${specialite}` })
+      const marker = L.marker([m.lat, m.lng], { icon: markerIcon, title: `${displayNom} — ${specialite}` })
         .bindPopup(`
           <div style="font-size:12px;min-width:170px;line-height:1.5;color:${INK}">
-            <p style="font-weight:600;margin:0 0 1px;font-size:14px;font-family:var(--font-display),Georgia,serif">Dr ${prenom} ${nom}</p>
+            <p style="font-weight:600;margin:0 0 1px;font-size:14px;font-family:var(--font-display),Georgia,serif">${displayNom}</p>
             <p style="color:${LAGOON};margin:0;font-size:11px;font-weight:700">${specialite}${dist}</p>
             ${dispo}${tel}${fiche}
           </div>

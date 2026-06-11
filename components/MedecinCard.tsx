@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Phone, MapPin, ChevronRight } from 'lucide-react';
 import { Medecin } from '@/types/medecin';
 import { avatarBg, getInitiales } from '@/lib/avatar';
-import { toTitleCase } from '@/lib/utils';
+import { nomAffiche } from '@/lib/utils';
 
 interface MedecinCardProps {
   medecin: Medecin;
@@ -18,7 +18,7 @@ export default function MedecinCard({ medecin, onSelect, selected }: MedecinCard
     ? rawDist < 100 ? 'À côté' : `${(rawDist / 1000).toFixed(1)} km`
     : null;
 
-  const displayNom = toTitleCase(medecin.nom);
+  const displayNom = nomAffiche(medecin.prenom, medecin.nom, medecin.specialite);
   const initiales  = getInitiales(medecin.prenom, medecin.nom);
 
   return (
@@ -37,7 +37,7 @@ export default function MedecinCard({ medecin, onSelect, selected }: MedecinCard
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
           <p className="font-bold text-ink-950 text-[15px] leading-tight truncate">
-            Dr {medecin.prenom ? toTitleCase(medecin.prenom) : ''} {displayNom}
+            {displayNom}
           </p>
           {distanceLabel && (
             <span className="label-mono tnum text-mist-600 bg-sand-100 border border-sand-200 px-2 py-0.5 rounded-full shrink-0">
@@ -76,7 +76,7 @@ export default function MedecinCard({ medecin, onSelect, selected }: MedecinCard
           <a
             href={`tel:${medecin.telephone}`}
             onClick={(e) => e.stopPropagation()}
-            aria-label={`Appeler ${medecin.prenom} ${displayNom}`}
+            aria-label={`Appeler ${displayNom}`}
             className="w-11 h-11 rounded-2xl bg-lagoon-600 text-white flex items-center justify-center tap-scale shadow-lift hover:bg-lagoon-700 transition-colors"
           >
             <Phone size={16} />
@@ -85,7 +85,7 @@ export default function MedecinCard({ medecin, onSelect, selected }: MedecinCard
         <Link
           href={`/medecin/${medecin.id}`}
           onClick={(e) => e.stopPropagation()}
-          aria-label={`Voir la fiche de ${medecin.prenom} ${displayNom}`}
+          aria-label={`Voir la fiche de ${displayNom}`}
           className="w-8 h-11 flex items-center justify-center"
         >
           <ChevronRight size={16} className="text-sand-300" />

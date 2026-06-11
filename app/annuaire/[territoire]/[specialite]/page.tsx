@@ -3,9 +3,10 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import { slugify } from '@/lib/slug';
-import { toTitleCase } from '@/lib/utils';
+import { toTitleCase, nomAffiche } from '@/lib/utils';
 import { avatarBg, getInitiales } from '@/lib/avatar';
 import PulseLine from '@/components/PulseLine';
+import BottomNav from '@/components/BottomNav';
 import { ChevronLeft, MapPin, Phone, CheckCircle } from 'lucide-react';
 
 // Pages d'annuaire SEO « Pédiatre en Martinique » — régénérées chaque jour (ISR)
@@ -83,7 +84,7 @@ export default async function AnnuairePage({ params }: Props) {
   const medecins = data ?? [];
 
   return (
-    <div className="min-h-screen bg-sand-50 pb-16">
+    <div className="min-h-screen bg-sand-50" style={{ paddingBottom: 'calc(var(--bottom-nav-height) + 16px)' }}>
 
       {/* HÉROS ENCRE — éditorial annuaire */}
       <div className="relative bg-ink-950 grain overflow-hidden">
@@ -122,7 +123,7 @@ export default async function AnnuairePage({ params }: Props) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-ink-950 truncate">
-                Dr {m.prenom ? toTitleCase(m.prenom) : ''} {toTitleCase(m.nom)}
+                {nomAffiche(m.prenom, m.nom, m.specialite)}
               </p>
               <p className="text-xs text-mist-500 truncate flex items-center gap-1 mt-0.5">
                 <MapPin size={11} className="shrink-0" aria-hidden="true" />
@@ -149,6 +150,8 @@ export default async function AnnuairePage({ params }: Props) {
           </p>
         </div>
       </div>
+
+      <BottomNav activePage="none" />
     </div>
   );
 }

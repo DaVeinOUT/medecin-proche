@@ -20,7 +20,7 @@
   --coral-500: #F0604A;
 
   --bottom-sheet-peek: 236px;
-  --bottom-nav-height: 88px;   /* capsule flottante 60px + retrait 14px + marge */
+  --bottom-nav-height: 78px;   /* barre dockée ~70px + marge de respiration */
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
@@ -182,9 +182,10 @@ html, body {
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
-/* Teinte sable-lagon des tuiles — la carte porte la marque */
+/* Teinte sable-lagon des tuiles — la carte porte la marque
+   (douce : les tuiles CARTO Voyager sont déjà chaudes) */
 .leaflet-tile-pane {
-  filter: saturate(0.78) hue-rotate(-6deg) sepia(0.14) brightness(1.03) contrast(0.97);
+  filter: saturate(0.88) sepia(0.05) brightness(1.01);
 }
 
 .leaflet-control-attribution {

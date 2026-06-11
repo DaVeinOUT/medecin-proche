@@ -13,6 +13,8 @@ type SortBy = 'distance' | 'nom' | 'disponible';
 
 interface MedecinListProps {
   medecins: Medecin[];
+  /** Total réel en base — la liste peut être plafonnée (300 territoire, 150 recherche) */
+  total?: number;
   loading: boolean;
   mode?: 'proximity' | 'territoire' | 'text';
   territoire?: string;
@@ -44,7 +46,7 @@ function sortMedecins(list: Medecin[], by: SortBy): Medecin[] {
 }
 
 export default function MedecinList({
-  medecins, loading, mode = 'proximity', territoire, onSelectMedecin, selectedMedecinId,
+  medecins, total, loading, mode = 'proximity', territoire, onSelectMedecin, selectedMedecinId,
 }: MedecinListProps) {
   const [visible, setVisible] = useState(PAGE_SIZE);
   const [sortBy, setSortBy]   = useState<SortBy>('distance');
@@ -145,7 +147,11 @@ export default function MedecinList({
 
       <div className="py-4 text-center space-y-1.5">
         <PulseLine className="w-20 h-4 mx-auto text-sand-300" />
-        <p className="text-xs text-mist-400 tnum">{medecins.length} résultat{medecins.length > 1 ? 's' : ''}</p>
+        <p className="text-xs text-mist-400 tnum">
+          {total && total > medecins.length
+            ? `${medecins.length} affichés sur ${total.toLocaleString('fr-FR')} — affinez avec les filtres`
+            : `${medecins.length} résultat${medecins.length > 1 ? 's' : ''}`}
+        </p>
         <p className="text-[10px] text-mist-400/80">Données non actualisées en temps réel · Vérifiez par téléphone</p>
       </div>
     </div>

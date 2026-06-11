@@ -6,19 +6,25 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export const supabase = createClient(supabaseUrl, supabaseKey);
 
+/** Résultats paginés : la liste (plafonnée) + le total réel en base */
+export interface MedecinResults {
+  medecins: Medecin[];
+  total: number;
+}
+
 // ─── Cache client-side (TTL 5 min, max 50 entrées) ───────────────────────────
-const cache = new Map<string, { data: Medecin[]; ts: number }>();
+const cache = new Map<string, { data: MedecinResults; ts: number }>();
 const CACHE_TTL = 5 * 60 * 1000;
 const MAX_CACHE_SIZE = 50;
 
-function getCached(key: string): Medecin[] | null {
+function getCached(key: string): MedecinResults | null {
   const hit = cache.get(key);
   if (!hit) return null;
   if (Date.now() - hit.ts > CACHE_TTL) { cache.delete(key); return null; }
   return hit.data;
 }
 
-function setCached(key: string, data: Medecin[]): void {
+function setCached(key: string, data: MedecinResults): void {
   if (cache.size >= MAX_CACHE_SIZE) {
     // Supprime l'entrée la plus ancienne (insertion order)
     cache.delete(cache.keys().next().value!);
@@ -38,7 +44,7 @@ const LIST_COLUMNS = 'id,nom,prenom,specialite,adresse,ville,territoire,telephon
 // ─── MODE PROXIMITÉ ──────────────────────────────────────────────────────────
 export async function getMedecinsProches({
   lat, lng, rayon, specialite, secteur, accepteNouveauxPatients,
-}: SearchParams): Promise<Medecin[]> {
+}: SearchParams): Promise<MedecinResults> {
   const key = `prox:${lat.toFixed(4)},${lng.toFixed(4)},${rayon},${specialite},${secteur},${accepteNouveauxPatients}`;
   const cached = getCached(key);
   if (cached) return cached;
@@ -56,7 +62,8 @@ export async function getMedecinsProches({
   const { data, error } = await query;
   if (error) throw new Error(error.message);
 
-  const result = (data as unknown as Medecin[]) ?? [];
+  const medecins = (data as unknown as Medecin[]) ?? [];
+  const result = { medecins, total: medecins.length };
   setCached(key, result);
   return result;
 }
@@ -67,24 +74,25 @@ export async function getMedecinsByTerritoire(
   specialite?: string,
   secteur?: number | null,
   accepteNouveauxPatients?: boolean,
-): Promise<Medecin[]> {
+): Promise<MedecinResults> {
   const key = `ter:${territoire},${specialite},${secteur},${accepteNouveauxPatients}`;
   const cached = getCached(key);
   if (cached) return cached;
 
   let query = supabase
     .from('medecins_vue')
-    .select(LIST_COLUMNS)
-    .ilike('territoire', `%${territoire}%`);  // ilike au lieu de eq — gère "Réunion" ↔ "La Réunion"
+    .select(LIST_COLUMNS, { count: 'exact' })  // count réel — la liste reste plafonnée
+    .ilike('territoire', `%${territoire}%`);   // ilike au lieu de eq — gère "Réunion" ↔ "La Réunion"
 
   if (specialite)              query = query.ilike('specialite', `%${specialite}%`);
   if (secteur)                 query = query.eq('secteur', secteur);
   if (accepteNouveauxPatients) query = query.eq('accepte_nouveaux_patients', true);
 
-  const { data, error } = await query.limit(300);
+  const { data, error, count } = await query.limit(300);
   if (error) throw new Error(error.message);
 
-  const result = (data as unknown as Medecin[]) ?? [];
+  const medecins = (data as unknown as Medecin[]) ?? [];
+  const result = { medecins, total: count ?? medecins.length };
   setCached(key, result);
   return result;
 }
@@ -95,7 +103,7 @@ export async function searchMedecins(
   specialite?: string,
   secteur?: number | null,
   accepteNouveauxPatients?: boolean,
-): Promise<Medecin[]> {
+): Promise<MedecinResults> {
   const safe = sanitizeQuery(query);
   const key = `search:${safe},${specialite},${secteur},${accepteNouveauxPatients}`;
   const cached = getCached(key);
@@ -103,7 +111,7 @@ export async function searchMedecins(
 
   let q = supabase
     .from('medecins_vue')
-    .select(LIST_COLUMNS)
+    .select(LIST_COLUMNS, { count: 'exact' })
     .or(
       `nom.ilike.%${safe}%,` +
       `prenom.ilike.%${safe}%,` +
@@ -116,10 +124,11 @@ export async function searchMedecins(
   if (secteur)                 q = q.eq('secteur', secteur);
   if (accepteNouveauxPatients) q = q.eq('accepte_nouveaux_patients', true);
 
-  const { data, error } = await q.limit(150);
+  const { data, error, count } = await q.limit(150);
   if (error) throw new Error(error.message);
 
-  const result = (data as unknown as Medecin[]) ?? [];
+  const medecins = (data as unknown as Medecin[]) ?? [];
+  const result = { medecins, total: count ?? medecins.length };
   setCached(key, result);
   return result;
 }
