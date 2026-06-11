@@ -1,63 +1,63 @@
-// Utilitaires avatar partagés entre MedecinCard et la page fiche médecin
+// Utilitaires avatar partagés entre MedecinCard, la fiche médecin et l'annuaire.
+// Palette « Édition Lagon » : pastilles douces sur crème, dégradés profonds
+// (texte blanc lisible AA), halo aurora pour les héros encre.
 
-const SPECIALITE_COLORS: Record<string, { bg: string; gradient: string }> = {
-  'Médecine générale':         { bg: 'bg-emerald-100 text-emerald-800', gradient: 'from-emerald-400 to-emerald-600' },
-  'Cardiologie':               { bg: 'bg-red-100 text-red-800',         gradient: 'from-red-400 to-red-600' },
-  'Gynécologie-Obstétrique':   { bg: 'bg-pink-100 text-pink-800',       gradient: 'from-pink-400 to-pink-600' },
-  'Pédiatrie':                 { bg: 'bg-cyan-100 text-cyan-800',       gradient: 'from-cyan-400 to-cyan-600' },
-  'Dermatologie':              { bg: 'bg-orange-100 text-orange-800',   gradient: 'from-orange-400 to-orange-600' },
-  'Ophtalmologie':             { bg: 'bg-blue-100 text-blue-800',       gradient: 'from-blue-400 to-blue-600' },
-  'ORL':                       { bg: 'bg-violet-100 text-violet-800',   gradient: 'from-violet-400 to-violet-600' },
-  'Psychiatrie':               { bg: 'bg-purple-100 text-purple-800',   gradient: 'from-purple-400 to-purple-600' },
-  'Rhumatologie':              { bg: 'bg-amber-100 text-amber-800',     gradient: 'from-amber-400 to-amber-600' },
-  'Neurologie':                { bg: 'bg-indigo-100 text-indigo-800',   gradient: 'from-indigo-400 to-indigo-600' },
-  'Endocrinologie':            { bg: 'bg-teal-100 text-teal-800',       gradient: 'from-teal-400 to-teal-600' },
-  'Chirurgie générale':        { bg: 'bg-slate-100 text-slate-800',     gradient: 'from-slate-400 to-slate-600' },
-  'Orthopédie':                { bg: 'bg-yellow-100 text-yellow-800',   gradient: 'from-yellow-400 to-yellow-600' },
-  'Radiologie':                { bg: 'bg-sky-100 text-sky-800',         gradient: 'from-sky-400 to-sky-600' },
-  'Anesthésie-Réanimation':    { bg: 'bg-rose-100 text-rose-800',       gradient: 'from-rose-400 to-rose-600' },
+interface SpecialiteTheme {
+  bg: string;        // pastille avatar sur fond crème
+  gradient: string;  // dégradé CTA / médaillon (texte blanc)
+  aurora: string;    // halo coloré des héros encre
+}
+
+const SPECIALITE_COLORS: Record<string, SpecialiteTheme> = {
+  'Médecine générale':         { bg: 'bg-lagoon-100 text-ink-800',      gradient: 'from-lagoon-600 to-ink-800',     aurora: '#2BC4A4' },
+  'Cardiologie':               { bg: 'bg-coral-100 text-coral-700',     gradient: 'from-coral-600 to-coral-700',    aurora: '#FF7E66' },
+  'Gynécologie-Obstétrique':   { bg: 'bg-pink-100 text-pink-900',       gradient: 'from-pink-600 to-pink-800',      aurora: '#F472B6' },
+  'Pédiatrie':                 { bg: 'bg-sky-100 text-sky-900',         gradient: 'from-sky-600 to-sky-800',        aurora: '#38BDF8' },
+  'Dermatologie':              { bg: 'bg-orange-100 text-orange-900',   gradient: 'from-orange-700 to-orange-900',  aurora: '#FB923C' },
+  'Ophtalmologie':             { bg: 'bg-blue-100 text-blue-900',       gradient: 'from-blue-600 to-blue-800',      aurora: '#60A5FA' },
+  'ORL':                       { bg: 'bg-violet-100 text-violet-900',   gradient: 'from-violet-600 to-violet-800',  aurora: '#A78BFA' },
+  'Psychiatrie':               { bg: 'bg-purple-100 text-purple-900',   gradient: 'from-purple-600 to-purple-800',  aurora: '#C084FC' },
+  'Rhumatologie':              { bg: 'bg-mango-100 text-mango-600',     gradient: 'from-mango-600 to-orange-900',   aurora: '#F2B14E' },
+  'Neurologie':                { bg: 'bg-indigo-100 text-indigo-900',   gradient: 'from-indigo-600 to-indigo-800',  aurora: '#818CF8' },
+  'Endocrinologie':            { bg: 'bg-teal-100 text-teal-900',       gradient: 'from-teal-600 to-teal-800',      aurora: '#2DD4BF' },
+  'Chirurgie générale':        { bg: 'bg-slate-200 text-slate-900',     gradient: 'from-slate-600 to-slate-800',    aurora: '#94A3B8' },
+  'Orthopédie':                { bg: 'bg-amber-100 text-amber-900',     gradient: 'from-amber-700 to-amber-900',    aurora: '#FBBF24' },
+  'Radiologie':                { bg: 'bg-cyan-100 text-cyan-900',       gradient: 'from-cyan-600 to-cyan-800',      aurora: '#22D3EE' },
+  'Anesthésie-Réanimation':    { bg: 'bg-rose-100 text-rose-900',       gradient: 'from-rose-600 to-rose-800',      aurora: '#FB7185' },
   // Libellés réels de l'Annuaire Santé CNAM (libelle_profession)
-  'Médecin généraliste':       { bg: 'bg-emerald-100 text-emerald-800', gradient: 'from-emerald-400 to-emerald-600' },
-  'Pédiatre':                  { bg: 'bg-cyan-100 text-cyan-800',       gradient: 'from-cyan-400 to-cyan-600' },
-  'Chirurgien-dentiste':       { bg: 'bg-sky-100 text-sky-800',         gradient: 'from-sky-400 to-sky-600' },
-  'Sage-femme':                { bg: 'bg-pink-100 text-pink-800',       gradient: 'from-pink-400 to-pink-600' },
-  'Infirmier':                 { bg: 'bg-teal-100 text-teal-800',       gradient: 'from-teal-400 to-teal-600' },
-  'Masseur-kinésithérapeute':  { bg: 'bg-lime-100 text-lime-800',       gradient: 'from-lime-400 to-lime-600' },
-  'Orthophoniste':             { bg: 'bg-fuchsia-100 text-fuchsia-800', gradient: 'from-fuchsia-400 to-fuchsia-600' },
-  'Cardiologue':               { bg: 'bg-red-100 text-red-800',         gradient: 'from-red-400 to-red-600' },
-  'Dermatologue et vénérologue': { bg: 'bg-orange-100 text-orange-800', gradient: 'from-orange-400 to-orange-600' },
-  'Gynécologue obstétricien':  { bg: 'bg-pink-100 text-pink-800',       gradient: 'from-pink-400 to-pink-600' },
-  'Gynécologue médical':       { bg: 'bg-pink-100 text-pink-800',       gradient: 'from-pink-400 to-pink-600' },
-  'Ophtalmologiste':           { bg: 'bg-blue-100 text-blue-800',       gradient: 'from-blue-400 to-blue-600' },
-  'Psychiatre':                { bg: 'bg-purple-100 text-purple-800',   gradient: 'from-purple-400 to-purple-600' },
-  'Radiologue':                { bg: 'bg-sky-100 text-sky-800',         gradient: 'from-sky-400 to-sky-600' },
-  'Rhumatologue':              { bg: 'bg-amber-100 text-amber-800',     gradient: 'from-amber-400 to-amber-600' },
+  'Médecin généraliste':       { bg: 'bg-lagoon-100 text-ink-800',      gradient: 'from-lagoon-600 to-ink-800',     aurora: '#2BC4A4' },
+  'Pédiatre':                  { bg: 'bg-sky-100 text-sky-900',         gradient: 'from-sky-600 to-sky-800',        aurora: '#38BDF8' },
+  'Chirurgien-dentiste':       { bg: 'bg-blue-100 text-blue-900',       gradient: 'from-blue-600 to-blue-800',      aurora: '#60A5FA' },
+  'Sage-femme':                { bg: 'bg-pink-100 text-pink-900',       gradient: 'from-pink-600 to-pink-800',      aurora: '#F472B6' },
+  'Infirmier':                 { bg: 'bg-teal-100 text-teal-900',       gradient: 'from-teal-600 to-teal-800',      aurora: '#2DD4BF' },
+  'Masseur-kinésithérapeute':  { bg: 'bg-lime-100 text-lime-900',       gradient: 'from-lime-700 to-emerald-900',   aurora: '#A3E635' },
+  'Orthophoniste':             { bg: 'bg-fuchsia-100 text-fuchsia-900', gradient: 'from-fuchsia-600 to-fuchsia-800',aurora: '#E879F9' },
+  'Cardiologue':               { bg: 'bg-coral-100 text-coral-700',     gradient: 'from-coral-600 to-coral-700',    aurora: '#FF7E66' },
+  'Dermatologue et vénérologue': { bg: 'bg-orange-100 text-orange-900', gradient: 'from-orange-700 to-orange-900',  aurora: '#FB923C' },
+  'Gynécologue obstétricien':  { bg: 'bg-pink-100 text-pink-900',       gradient: 'from-pink-600 to-pink-800',      aurora: '#F472B6' },
+  'Gynécologue médical':       { bg: 'bg-pink-100 text-pink-900',       gradient: 'from-pink-600 to-pink-800',      aurora: '#F472B6' },
+  'Ophtalmologiste':           { bg: 'bg-blue-100 text-blue-900',       gradient: 'from-blue-600 to-blue-800',      aurora: '#60A5FA' },
+  'Psychiatre':                { bg: 'bg-purple-100 text-purple-900',   gradient: 'from-purple-600 to-purple-800',  aurora: '#C084FC' },
+  'Radiologue':                { bg: 'bg-cyan-100 text-cyan-900',       gradient: 'from-cyan-600 to-cyan-800',      aurora: '#22D3EE' },
+  'Rhumatologue':              { bg: 'bg-mango-100 text-mango-600',     gradient: 'from-mango-600 to-orange-900',   aurora: '#F2B14E' },
 };
 
 // Fallback par lettre du nom (spécialités non listées ou données inconnues)
-const FALLBACK_BG = [
-  'bg-blue-100 text-blue-800',
-  'bg-violet-100 text-violet-800',
-  'bg-emerald-100 text-emerald-800',
-  'bg-orange-100 text-orange-800',
-  'bg-pink-100 text-pink-800',
-  'bg-cyan-100 text-cyan-800',
-];
-const FALLBACK_GRADIENT = [
-  'from-blue-400 to-blue-600',
-  'from-violet-400 to-violet-600',
-  'from-emerald-400 to-emerald-600',
-  'from-orange-400 to-orange-600',
-  'from-pink-400 to-pink-600',
-  'from-cyan-400 to-cyan-600',
+const FALLBACK: SpecialiteTheme[] = [
+  { bg: 'bg-blue-100 text-blue-900',     gradient: 'from-blue-600 to-blue-800',       aurora: '#60A5FA' },
+  { bg: 'bg-violet-100 text-violet-900', gradient: 'from-violet-600 to-violet-800',   aurora: '#A78BFA' },
+  { bg: 'bg-lagoon-100 text-ink-800',    gradient: 'from-lagoon-600 to-ink-800',      aurora: '#2BC4A4' },
+  { bg: 'bg-orange-100 text-orange-900', gradient: 'from-orange-700 to-orange-900',   aurora: '#FB923C' },
+  { bg: 'bg-pink-100 text-pink-900',     gradient: 'from-pink-600 to-pink-800',       aurora: '#F472B6' },
+  { bg: 'bg-cyan-100 text-cyan-900',     gradient: 'from-cyan-600 to-cyan-800',       aurora: '#22D3EE' },
 ];
 
 function fallbackIdx(name: string): number {
-  return name.charCodeAt(0) % FALLBACK_BG.length;
+  return name.charCodeAt(0) % FALLBACK.length;
 }
 
 /** Trouve la correspondance de spécialité sans tenir compte de la casse ni des accents */
-function findSpecialite(specialite: string): { bg: string; gradient: string } | undefined {
+function findSpecialite(specialite: string): SpecialiteTheme | undefined {
   const needle = specialite.trim().toLowerCase();
   const key = Object.keys(SPECIALITE_COLORS).find(
     (k) => k.toLowerCase() === needle
@@ -65,22 +65,27 @@ function findSpecialite(specialite: string): { bg: string; gradient: string } | 
   return key ? SPECIALITE_COLORS[key] : undefined;
 }
 
-/** Couleur de fond de l'avatar — par spécialité (case-insensitive), fallback sur le nom */
-export function avatarBg(nom: string, specialite?: string): string {
+function themeFor(nom: string, specialite?: string): SpecialiteTheme {
   if (specialite) {
     const found = findSpecialite(specialite);
-    if (found) return found.bg;
+    if (found) return found;
   }
-  return FALLBACK_BG[fallbackIdx(nom)];
+  return FALLBACK[fallbackIdx(nom)];
 }
 
-/** Gradient pour la page fiche — par spécialité, fallback sur le nom */
+/** Couleur de fond de l'avatar — par spécialité (case-insensitive), fallback sur le nom */
+export function avatarBg(nom: string, specialite?: string): string {
+  return themeFor(nom, specialite).bg;
+}
+
+/** Dégradé CTA / médaillon — par spécialité, fallback sur le nom */
 export function avatarGradient(nom: string, specialite?: string): string {
-  if (specialite) {
-    const found = findSpecialite(specialite);
-    if (found) return found.gradient;
-  }
-  return FALLBACK_GRADIENT[fallbackIdx(nom)];
+  return themeFor(nom, specialite).gradient;
+}
+
+/** Couleur du halo aurora des héros encre — par spécialité, fallback sur le nom */
+export function avatarAurora(nom: string, specialite?: string): string {
+  return themeFor(nom, specialite).aurora;
 }
 
 /** Retourne les 2 initiales (prénom + nom) */

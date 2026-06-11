@@ -9,6 +9,7 @@ interface ShareButtonProps {
   url: string;
 }
 
+/** Pastille verre — conçue pour les héros encre (fiche médecin) */
 export default function ShareButton({ title, text, url }: ShareButtonProps) {
   const [copied, setCopied] = useState(false);
 
@@ -33,7 +34,7 @@ export default function ShareButton({ title, text, url }: ShareButtonProps) {
     <div className="relative">
       {/* Toast "Lien copié !" */}
       {copied && (
-        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs font-semibold px-3 py-1.5 rounded-xl whitespace-nowrap shadow-float pointer-events-none">
+        <div className="absolute -top-11 left-1/2 -translate-x-1/2 bg-ink-900 border border-white/10 text-sand-50 text-xs font-bold px-3.5 py-2 rounded-xl whitespace-nowrap shadow-float pointer-events-none">
           Lien copié !
         </div>
       )}
@@ -41,11 +42,11 @@ export default function ShareButton({ title, text, url }: ShareButtonProps) {
       <button
         onClick={handleShare}
         aria-label="Partager cette fiche"
-        className="w-10 h-10 rounded-2xl bg-white shadow-card flex items-center justify-center tap-scale transition-colors hover:bg-primary-50"
+        className="w-11 h-11 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm flex items-center justify-center tap-scale transition-colors hover:bg-white/20"
       >
         {copied
-          ? <Check size={17} className="text-emerald-600" />
-          : <Share2 size={17} className="text-gray-500" />
+          ? <Check size={17} className="text-lagoon-300" />
+          : <Share2 size={17} className="text-sand-100" />
         }
       </button>
     </div>

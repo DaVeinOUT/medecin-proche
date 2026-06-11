@@ -28,10 +28,10 @@ export default function TerritoireSelector({ onSelect, territoire }: TerritoireS
             onClick={() => onSelect(t.position, t.label)}
             aria-label={`Voir les médecins en ${t.label}`}
             aria-pressed={active}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-semibold whitespace-nowrap shadow-float transition-all tap-scale ${
+            className={`flex items-center gap-1.5 h-10 px-4 rounded-full text-xs font-bold whitespace-nowrap transition-all tap-scale ${
               active
-                ? 'bg-primary-600 text-white'
-                : 'bg-white text-gray-600 hover:bg-primary-50 hover:text-primary-600'
+                ? 'bg-lagoon-400 text-ink-950 shadow-glow'
+                : 'glass-ink text-sand-100 shadow-float hover:text-lagoon-200'
             }`}
           >
             <span aria-hidden="true">{t.flag}</span>

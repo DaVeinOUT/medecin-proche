@@ -7,9 +7,15 @@ import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import { Medecin } from '@/types/medecin';
+import { formatTel } from '@/lib/utils';
 
 const MAX_MAP_MARKERS = 300;
-const BRAND_TEAL = '#0d9488';
+
+// Palette « Édition Lagon »
+const INK    = '#0A2B25';
+const LAGOON = '#0E8E76';
+const MIST   = '#71857D';
+const PAPER  = '#FFFDF9';
 
 function escapeHtml(s: string | null | undefined): string {
   if (!s) return '';
@@ -21,19 +27,12 @@ function escapeHtml(s: string | null | undefined): string {
     .replace(/'/g, '&#x27;');
 }
 
+// Position utilisateur — pastille lagon avec onde (styles dans globals.css)
 const userIcon = L.divIcon({
   className: '',
-  html: `<div style="width:16px;height:16px;background:${BRAND_TEAL};border:3px solid white;border-radius:50%;box-shadow:0 2px 8px rgba(13,148,136,0.5)"></div>`,
-  iconSize: [16, 16],
-  iconAnchor: [8, 8],
-});
-
-const medecinIcon = L.divIcon({
-  className: '',
-  html: `<div style="width:28px;height:28px;background:${BRAND_TEAL};border:2.5px solid white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 8px rgba(0,0,0,0.25)"><div style="transform:rotate(45deg);width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:13px;color:white">+</div></div>`,
-  iconSize: [28, 28],
-  iconAnchor: [14, 28],
-  popupAnchor: [0, -30],
+  html: `<div class="user-dot"></div>`,
+  iconSize: [18, 18],
+  iconAnchor: [9, 9],
 });
 
 interface MapProps {
@@ -86,7 +85,7 @@ export default function Map({ userPosition, mapCenter, medecins, selectedMedecin
     mapRef.current = map;
 
     userMarkerRef.current = L.marker(userPosition, { icon: userIcon })
-      .bindPopup('<strong style="color:#0d9488">Vous êtes ici</strong>')
+      .bindPopup(`<strong style="color:${LAGOON};font-family:var(--font-display),Georgia,serif">Vous êtes ici</strong>`)
       .addTo(map);
 
     return () => {
@@ -123,33 +122,33 @@ export default function Map({ userPosition, mapCenter, medecins, selectedMedecin
       const safeId     = encodeURIComponent(m.id);
 
       const dispo = m.accepte_nouveaux_patients
-        ? `<span style="display:inline-block;background:#059669;color:white;font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px;margin-top:4px">Disponible</span>`
-        : `<span style="display:inline-block;background:#dc2626;color:white;font-size:10px;font-weight:700;padding:1px 7px;border-radius:99px;margin-top:4px">Complet</span>`;
+        ? `<span style="display:inline-flex;align-items:center;gap:5px;color:#0B7A66;font-size:10px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;margin-top:6px"><span style="width:6px;height:6px;border-radius:99px;background:#14A88B;display:inline-block"></span>Disponible</span>`
+        : `<span style="display:inline-flex;align-items:center;gap:5px;color:${MIST};font-size:10px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;margin-top:6px"><span style="width:6px;height:6px;border-radius:99px;background:#D8C6A8;display:inline-block"></span>Complet</span>`;
       const tel = m.telephone
-        ? `<a href="tel:${escapeHtml(m.telephone)}" style="color:${BRAND_TEAL};display:block;margin-top:5px;font-size:11px">${escapeHtml(m.telephone)}</a>`
+        ? `<a href="tel:${escapeHtml(m.telephone)}" style="color:${LAGOON};display:block;margin-top:6px;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums">${escapeHtml(formatTel(m.telephone))}</a>`
         : '';
-      const fiche = `<a href="/medecin/${safeId}" style="color:${BRAND_TEAL};font-weight:700;display:block;margin-top:4px;font-size:11px">Voir la fiche →</a>`;
+      const fiche = `<a href="/medecin/${safeId}" style="color:${LAGOON};font-weight:800;display:block;margin-top:5px;font-size:11px">Voir la fiche →</a>`;
       const dist  = m.distance
-        ? `<span style="color:#9ca3af;font-size:10px"> · ${(m.distance / 1000).toFixed(1)} km</span>`
+        ? `<span style="color:#8FA29A;font-size:10px;font-variant-numeric:tabular-nums"> · ${(m.distance / 1000).toFixed(1)} km</span>`
         : '';
 
       const markerIcon = L.divIcon({
         className: '',
-        html: `<div style="width:28px;height:28px;background:${BRAND_TEAL};border:2.5px solid white;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 2px 8px rgba(0,0,0,0.25)"><div style="transform:rotate(45deg);width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:13px;color:white">+</div></div><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap">Dr ${prenom} ${nom} — ${specialite}</span>`,
-        iconSize: [28, 28],
-        iconAnchor: [14, 28],
-        popupAnchor: [0, -30],
+        html: `<div class="pin-medecin"><span>+</span></div><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap">Dr ${prenom} ${nom} — ${specialite}</span>`,
+        iconSize: [30, 30],
+        iconAnchor: [15, 30],
+        popupAnchor: [0, -32],
       });
 
       const marker = L.marker([m.lat, m.lng], { icon: markerIcon, title: `Dr ${prenom} ${nom} — ${specialite}` })
         .bindPopup(`
-          <div style="font-size:12px;min-width:160px;line-height:1.5">
-            <p style="font-weight:800;margin:0 0 1px;font-size:13px">Dr ${prenom} ${nom}</p>
-            <p style="color:${BRAND_TEAL};margin:0;font-size:11px">${specialite}${dist}</p>
+          <div style="font-size:12px;min-width:170px;line-height:1.5;color:${INK}">
+            <p style="font-weight:600;margin:0 0 1px;font-size:14px;font-family:var(--font-display),Georgia,serif">Dr ${prenom} ${nom}</p>
+            <p style="color:${LAGOON};margin:0;font-size:11px;font-weight:700">${specialite}${dist}</p>
             ${dispo}${tel}${fiche}
           </div>
         `, {
-          maxWidth: 220,
+          maxWidth: 230,
           // Décale l'autopan pour que le popup s'ouvre sous l'overlay (header + pills ≈ 210px)
           autoPanPaddingTopLeft: L.point(10, 220),
           autoPanPaddingBottomRight: L.point(10, 80),

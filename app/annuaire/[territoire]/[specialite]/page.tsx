@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import { slugify } from '@/lib/slug';
 import { toTitleCase } from '@/lib/utils';
 import { avatarBg, getInitiales } from '@/lib/avatar';
+import PulseLine from '@/components/PulseLine';
 import { ChevronLeft, MapPin, Phone, CheckCircle } from 'lucide-react';
 
 // Pages d'annuaire SEO « Pédiatre en Martinique » — régénérées chaque jour (ISR)
@@ -82,24 +83,30 @@ export default async function AnnuairePage({ params }: Props) {
   const medecins = data ?? [];
 
   return (
-    <div className="min-h-screen bg-surface pb-16">
+    <div className="min-h-screen bg-sand-50 pb-16">
 
-      <div className="bg-gradient-to-br from-teal-500 to-teal-700 relative overflow-hidden">
-        <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-white/10 pointer-events-none" />
-        <div className="max-w-2xl mx-auto px-4 pt-14 pb-6 relative z-10">
+      {/* HÉROS ENCRE — éditorial annuaire */}
+      <div className="relative bg-ink-950 grain overflow-hidden">
+        <div className="aurora w-64 h-64 -top-20 -right-14" style={{ background: '#2BC4A4', opacity: 0.45 }} />
+
+        <div className="max-w-2xl mx-auto px-4 pt-12 pb-7 relative z-10">
           <Link
             href="/"
-            className="inline-flex items-center gap-1 text-white/90 text-sm font-semibold bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-xl mb-4 tap-scale"
+            className="inline-flex items-center gap-1 text-sand-50 text-sm font-bold bg-white/10 border border-white/20 backdrop-blur-sm px-3.5 py-2 rounded-full mb-5 tap-scale"
           >
             <ChevronLeft size={15} />
             Carte
           </Link>
-          <h1 className="text-2xl font-extrabold text-white leading-tight">
-            {pair.specialite} — {pair.territoire}
+          <p className="label-mono text-lagoon-300 mb-1.5">
+            Annuaire · {pair.territoire}
+          </p>
+          <h1 className="font-display font-semibold text-3xl text-sand-50 leading-tight text-balance">
+            {pair.specialite}
           </h1>
-          <p className="text-white/70 text-sm mt-0.5">
+          <p className="text-sand-200/70 text-sm mt-1.5 tnum">
             {pair.nb} praticien{pair.nb > 1 ? 's' : ''} référencé{pair.nb > 1 ? 's' : ''}
           </p>
+          <PulseLine animated className="w-36 h-4 mt-4 text-lagoon-400/70" />
         </div>
       </div>
 
@@ -108,36 +115,39 @@ export default async function AnnuairePage({ params }: Props) {
           <Link
             key={m.id}
             href={`/medecin/${m.id}`}
-            className="flex items-center gap-3.5 bg-white rounded-2xl shadow-card px-4 py-3.5 tap-scale"
+            className="flex items-center gap-3.5 bg-paper border border-sand-200 rounded-2xl shadow-card px-4 py-3.5 tap-scale hover:shadow-card-hover transition-shadow"
           >
-            <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 text-sm font-extrabold ${avatarBg(m.nom, m.specialite)}`}>
+            <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 font-display font-semibold text-sm ${avatarBg(m.nom, m.specialite)}`}>
               {getInitiales(m.prenom, m.nom)}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-gray-900 truncate">
+              <p className="text-sm font-bold text-ink-950 truncate">
                 Dr {m.prenom ? toTitleCase(m.prenom) : ''} {toTitleCase(m.nom)}
               </p>
-              <p className="text-xs text-gray-500 truncate flex items-center gap-1 mt-0.5">
+              <p className="text-xs text-mist-500 truncate flex items-center gap-1 mt-0.5">
                 <MapPin size={11} className="shrink-0" aria-hidden="true" />
                 {toTitleCase(m.ville || m.adresse)}
               </p>
             </div>
             <div className="flex flex-col items-end gap-1 shrink-0">
               {m.accepte_nouveaux_patients && (
-                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-lagoon-700 bg-lagoon-50 border border-lagoon-100 px-2 py-0.5 rounded-full">
                   <CheckCircle size={10} aria-hidden="true" />
                   Disponible
                 </span>
               )}
-              {m.telephone && <Phone size={14} className="text-primary-600" aria-hidden="true" />}
+              {m.telephone && <Phone size={14} className="text-lagoon-600" aria-hidden="true" />}
             </div>
           </Link>
         ))}
 
-        <p className="text-[11px] text-gray-400 text-center px-6 pt-3 leading-relaxed">
-          Données issues de l&apos;Annuaire Santé (CNAM) — non actualisées en temps réel.
-          Vérifiez par téléphone avant de vous déplacer.
-        </p>
+        <div className="text-center space-y-1.5 px-6 pt-3">
+          <PulseLine className="w-20 h-4 mx-auto text-sand-300" />
+          <p className="text-[11px] text-mist-500 leading-relaxed">
+            Données issues de l&apos;Annuaire Santé (CNAM) — non actualisées en temps réel.
+            Vérifiez par téléphone avant de vous déplacer.
+          </p>
+        </div>
       </div>
     </div>
   );

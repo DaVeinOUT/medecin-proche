@@ -60,7 +60,7 @@ export default function SearchBar({ onSearch, placeholder = 'Médecin, spéciali
     <div ref={wrapperRef} className="relative">
       <form onSubmit={handleSubmit}>
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={17} />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-lagoon-600 pointer-events-none" size={17} />
           <input
             type="text"
             value={value}
@@ -72,14 +72,14 @@ export default function SearchBar({ onSearch, placeholder = 'Médecin, spéciali
             aria-autocomplete="list"
             aria-controls="search-suggestions"
             aria-expanded={showSugg}
-            className="w-full pl-11 pr-10 py-3.5 bg-white rounded-2xl shadow-float text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 transition"
+            className="w-full pl-11 pr-11 py-3.5 bg-paper border border-sand-200 rounded-2xl shadow-lift text-[15px] text-ink-950 placeholder:text-mist-500 focus:outline-none focus:ring-2 focus:ring-lagoon-400 focus:border-lagoon-400 transition"
           />
           {value && (
             <button
               type="button"
               onClick={handleClear}
               aria-label="Effacer la recherche"
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-full text-mist-500 hover:text-ink-900 hover:bg-sand-100 transition-colors"
             >
               <X size={15} />
             </button>
@@ -93,7 +93,7 @@ export default function SearchBar({ onSearch, placeholder = 'Médecin, spéciali
           id="search-suggestions"
           role="listbox"
           aria-label="Suggestions de spécialités"
-          className="absolute top-full left-0 right-0 mt-1 bg-white rounded-2xl shadow-float z-50 overflow-hidden"
+          className="absolute top-full left-0 right-0 mt-2 bg-paper border border-sand-200 rounded-2xl shadow-float z-50 overflow-hidden divide-y divide-sand-100"
         >
           {suggestions.map((s) => (
             <button
@@ -101,9 +101,9 @@ export default function SearchBar({ onSearch, placeholder = 'Médecin, spéciali
               role="option"
               aria-selected={value === s}
               onMouseDown={() => handleSuggestionClick(s)}
-              className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-700 flex items-center gap-2 transition-colors"
+              className="w-full text-left px-4 py-3 text-sm font-medium text-ink-800 hover:bg-lagoon-50 hover:text-lagoon-700 flex items-center gap-2.5 transition-colors"
             >
-              <Search size={13} className="text-gray-300 shrink-0" />
+              <Search size={13} className="text-lagoon-500 shrink-0" />
               {s}
             </button>
           ))}

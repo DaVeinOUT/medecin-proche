@@ -4,8 +4,8 @@
   "description": "Trouvez un médecin près de chez vous en Martinique, Guadeloupe, Guyane, à La Réunion et à Mayotte",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#2563eb",
+  "background_color": "#FBF7F0",
+  "theme_color": "#071E1A",
   "orientation": "portrait",
   "icons": [
     {
